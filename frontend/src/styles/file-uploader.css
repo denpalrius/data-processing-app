@@ -1,0 +1,37 @@
+.upload-area {
+    border: 2px dashed var(--muted-border-color);
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+  
+  .upload-area:hover {
+    border-color: var(--primary);
+  }
+  
+  .upload-area[aria-disabled="true"] {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    color: var(--muted-color);
+  }
+  
+  article[aria-label="Error message"] {
+    margin: 1rem 0;
+  }
+  
+  article[aria-label="Error message"] .error {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    background-color: var(--del-color);
+    color: var(--del-text);
+  }
