@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:latest
@@ -7,8 +6,8 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_DB: file_app
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: dev123
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: dev123_admin
     volumes:
       - ./volumes/postgres:/var/lib/postgresql/data
 
@@ -19,8 +18,8 @@ services:
       - "9000:9000"  # API Port
       - "9001:9001"  # Console Port
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: dev123_admin
     command: server /data --console-address ":9001"
     volumes:
       - ./volumes/minio:/data
@@ -32,6 +31,17 @@ services:
       memlock: -1
     ports:
       - "6379:6379"  # Same port as Redis for compatibility
+    environment:
+      - DFLY_user_default_username=admin
+      - DFLY_user_default_password=dev123
     volumes:
       - ./volumes/dragonfly:/data
-    command: ["--requirepass", "dev123"]
+    command: ["--requirepass", "dev123_admin"]
+
+  nats:
+    image: nats:latest
+    container_name: nats
+    ports:
+      - "4222:4222"  # NATS Core
+      - "8222:8222"  # Monitoring UI
+    command: "-js"  # Enable JetStream
