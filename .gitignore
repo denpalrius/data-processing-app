@@ -1,0 +1,44 @@
+# Development environment
+.env
+.env.*
+!.env.example
+
+# Docker volumes
+volumes/
+
+# Dependencies
+node_modules/
+dist/
+build/
+.next/
+out/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDEs and editors
+.idea/
+.vscode/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temp files
+*.tmp
+*.temp
+.cache/
+.temp/
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Production
+.env.production
+.env.local
