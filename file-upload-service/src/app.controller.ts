@@ -1,12 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  getHello(): { name: string; version: string; description: string } {
+    return {
+      name: 'data-processing-app',
+      version: '1.0.0',
+      description: 'This app processes data and handles file uploads.',
+    };
   }
 }
