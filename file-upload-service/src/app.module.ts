@@ -7,29 +7,40 @@ import { AuthModule } from './auth/auth.module';
 import { StorageModule } from './storage/storage.module';
 import { UploadModule } from './upload/upload.module';
 import { NatsModule } from './nats/nats.module';
-import { File } from './upload/models/file.entity';
+import { FileMetadata } from './filemetadata/models/filemetadata.entity';
+import { MinioModule } from './minio/minio.module';
+import { FilemetadataModule } from './filemetadata/filemetadata.module';
+import minioConfig from './minio/minio.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      load: [minioConfig],
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DATABASE_URL,
-      port: process.env.DATABASE_PORT ? +process.env.DATABASE_PORT : 5432,
+      port: Number(process.env.DATABASE_PORT),
       username: process.env.DATABASE_USER,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      entities: [File],
+      entities: [FileMetadata],
       synchronize: true,
     }),
     AuthModule,
     StorageModule,
     UploadModule,
     NatsModule,
+    MinioModule,
+    FilemetadataModule,
   ],
   controllers: [AppController],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  constructor() {
+    // console.log('AppModule initialized');
+    // console.log(process.env);
+  }
+}
