@@ -5,11 +5,12 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: file_app
+      POSTGRES_DB: file_processor
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: dev123_admin
     volumes:
       - ./volumes/postgres-data:/var/lib/postgresql/data
+      - ./file-upload-service/seed_database.sh:/docker-entrypoint-initdb.d/seed_database.sh
 
   minio:
     image: minio/minio
