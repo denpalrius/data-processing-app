@@ -1,7 +1,6 @@
 "use client";
 
 import React from 'react';
-import { Upload } from 'lucide-react';
 import { useFileUploader } from './useFileUploader';
 import { ErrorAlert } from './ErrorAlert';
 import { FileDisplay } from './FileDisplay';

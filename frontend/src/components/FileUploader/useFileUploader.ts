@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect } from "react";
 import useUploadStore from "../../stores/uploadStore";
-import { getPresignedUrl, uploadChunk } from "../../lib/upload";
+import { getPresignedUrl, uploadFile } from "../../lib/services/upload.service";
 import {
   MAX_RETRIES,
   RETRY_DELAY,
-  CHUNK_SIZE,
   MAX_FILE_SIZE,
   WEBSOCKET_URL,
 } from "../../lib/constants";
+import { HttpStatusCode } from "axios";
 
 export const useFileUploader = () => {
   const {
@@ -61,50 +61,6 @@ export const useFileUploader = () => {
     [setFile, setStatus, setError]
   );
 
-  const attemptChunkUpload = async (
-    chunk: Blob,
-    fileName: string,
-    chunkIndex: number
-  ) => {
-    let retries = 0;
-
-    while (retries < MAX_RETRIES) {
-      try {
-        const { url } = await getPresignedUrl(fileName, chunkIndex);
-        if (!url) {
-          throw new Error("Failed to get presigned URL");
-        }
-
-        const response = await uploadChunk(chunk, url);
-        if (!response.ok) {
-          throw new Error(`Upload failed with status: ${response.status}`);
-        }
-
-        return response; // Successful upload
-      } catch (error) {
-        retries++;
-
-        // If it's a 404, fail immediately
-        if ((error as any).response?.status === 404) {
-          throw new Error("Upload endpoint not found");
-        }
-
-        // If we've exhausted retries, throw the error
-        if (retries === MAX_RETRIES) {
-          throw new Error(
-            `Failed after ${MAX_RETRIES} attempts: ${(error as Error).message}`
-          );
-        }
-
-        // Wait before retrying
-        await new Promise((resolve) =>
-          setTimeout(resolve, RETRY_DELAY * retries)
-        ); // Exponential backoff
-        continue;
-      }
-    }
-  };
-
   const handleUpload = useCallback(async () => {
     if (!file) return;
 
@@ -113,38 +69,46 @@ export const useFileUploader = () => {
     setError(null);
 
     try {
-      const chunks = Math.ceil(file.size / CHUNK_SIZE);
+      const fileMagicNumber = await file
+        .slice(0, 4)
+        .arrayBuffer()
+        .then((buffer) => new Uint8Array(buffer)[0]);
 
-      for (let i = 0; i < chunks; i++) {
-        const chunk = file.slice(
-          i * CHUNK_SIZE,
-          Math.min((i + 1) * CHUNK_SIZE, file.size)
-        );
-
-        try {
-          await attemptChunkUpload(chunk, file.name, i);
-
-          const progress = ((i + 1) / chunks) * 100;
-          setProgress(progress);
-
-          ws?.send(
-            JSON.stringify({
-              type: "CHUNK_UPLOADED",
-              fileName: file.name,
-              chunkIndex: i,
-              progress,
-            })
-          );
-        } catch (error) {
-          setError((error as Error).message);
-          setStatus("error");
-          return; // Stop uploading remaining chunks on failure
-        }
+      const presignedDataRequest = {
+        filename: file.name,
+        contentType: file.type,
+        size: file.size,
+        magicNumber: fileMagicNumber,
+      };
+      
+      const presignedRes = await getPresignedUrl(presignedDataRequest);
+      if (!presignedRes.url) {
+        throw new Error("Failed to get presigned URL");
       }
 
+      const formData = new FormData();
+      for (const [key, value] of Object.entries(presignedRes.fields || {})) {
+        formData.append(key, value);
+      }
+      formData.append("file", new Blob([file]));
+
+      const responseStatus = await uploadFile(presignedRes.url, formData);
+
+      if (responseStatus !== HttpStatusCode.NoContent) {
+        throw new Error(`Upload failed with status: ${responseStatus}`);
+      }
+
+      setProgress(100);
       setStatus("complete");
+      // ws?.send(
+      //   JSON.stringify({
+      //     type: "FILE_UPLOADED",
+      //     fileName: file.name,
+      //     progress: 100,
+      //   })
+      // );
     } catch (error) {
-      setError("Upload failed. Please try again.");
+      setError((error as Error).message);
       setStatus("error");
     }
   }, [file, ws, setStatus, setProgress, setError]);
