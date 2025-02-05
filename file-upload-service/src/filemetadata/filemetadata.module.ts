@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { FileMetadata } from './models/filemetadata.entity';
+import { FileMetadata } from './filemetadata.entity';
 import { FilemetadataService } from './filemetadata.service';
 import { FilemetadataController } from './filemetadata.controller';
 

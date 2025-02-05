@@ -7,7 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { StorageModule } from './storage/storage.module';
 import { UploadModule } from './upload/upload.module';
 import { NatsModule } from './nats/nats.module';
-import { FileMetadata } from './filemetadata/models/filemetadata.entity';
+import { FileMetadata } from './filemetadata/filemetadata.entity';
 import { MinioModule } from './minio/minio.module';
 import { FilemetadataModule } from './filemetadata/filemetadata.module';
 import minioConfig from './minio/minio.config';

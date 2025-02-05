@@ -6,8 +6,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-    .setTitle('File Upload Service')
-    .setDescription('The file upload service description')
+    .setTitle('File Processing Service')
+    .setDescription('The file processing API documentation')
     .setVersion('1.0')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { FileMetadata } from './models/filemetadata.entity';
+import { FileMetadata } from './filemetadata.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
