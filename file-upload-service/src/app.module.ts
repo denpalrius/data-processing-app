@@ -39,8 +39,5 @@ import minioConfig from './minio/minio.config';
   providers: [],
 })
 export class AppModule {
-  constructor() {
-    // console.log('AppModule initialized');
-    // console.log(process.env);
-  }
+  constructor() {}
 }

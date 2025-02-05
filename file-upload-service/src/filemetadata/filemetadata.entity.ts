@@ -1,3 +1,4 @@
+import { FileStatus } from 'src/utils/file-status';
 import {
   Entity,
   Column,
@@ -30,7 +31,7 @@ export class FileMetadata {
   bucketUrl: string;
 
   @Column()
-  status: string;
+  status: FileStatus;
 
   @CreateDateColumn()
   createdAt: Date;

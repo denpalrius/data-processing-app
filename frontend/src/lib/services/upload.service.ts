@@ -1,5 +1,5 @@
 import { HttpStatusCode } from "axios";
-import { URL_PART_PRESIGNED_URL } from "../constants";
+import { URL_PART_COMPLETE_UPLOAD, URL_PART_PRESIGNED_URL } from "../constants";
 import { PresignedUrlRequest } from "../models/presigned-url-request";
 import { PresignedUrlResponse } from "../models/presigned-url-response";
 import { ApiService } from "./api.service";
@@ -41,5 +41,27 @@ export async function uploadFile(
   } catch (error) {
     console.error("Error uploading file:", error);
     throw new Error("Failed to upload file");
+  }
+}
+
+export async function completeFileUpload(fileId: string): Promise<boolean> {
+  try {
+    const response = await apiService.post<void, Response>(
+      `${URL_PART_COMPLETE_UPLOAD}?fileId=${fileId}`
+    );
+
+    console.log("File upload completed successfully:", response);
+
+    if (response.status !== HttpStatusCode.Created) {
+      throw new Error("Failed to complete file upload");
+    }
+
+
+    
+
+    return true;
+  } catch (error) {
+    console.error("Error completing file upload:", error);
+    throw new Error("Failed to complete file upload");
   }
 }

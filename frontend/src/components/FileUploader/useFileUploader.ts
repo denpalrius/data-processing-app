@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect } from "react";
 import useUploadStore from "../../stores/uploadStore";
-import { getPresignedUrl, uploadFile } from "../../lib/services/upload.service";
+import {
+  getPresignedUrl,
+  uploadFile,
+  completeFileUpload,
+} from "../../lib/services/upload.service";
 import {
   MAX_RETRIES,
   RETRY_DELAY,
@@ -80,7 +84,7 @@ export const useFileUploader = () => {
         size: file.size,
         magicNumber: fileMagicNumber,
       };
-      
+
       const presignedRes = await getPresignedUrl(presignedDataRequest);
       if (!presignedRes.url) {
         throw new Error("Failed to get presigned URL");
@@ -98,15 +102,15 @@ export const useFileUploader = () => {
         throw new Error(`Upload failed with status: ${responseStatus}`);
       }
 
+      const uploadCompleteResponse = await completeFileUpload(
+        presignedRes.fileId
+      );
+      if (!uploadCompleteResponse) {
+        throw new Error("Failed to complete file upload");
+      }
+
       setProgress(100);
       setStatus("complete");
-      // ws?.send(
-      //   JSON.stringify({
-      //     type: "FILE_UPLOADED",
-      //     fileName: file.name,
-      //     progress: 100,
-      //   })
-      // );
     } catch (error) {
       setError((error as Error).message);
       setStatus("error");

@@ -30,11 +30,13 @@ export class FilemetadataService {
     return await this.findOne(id);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number): Promise<{ message: string }> {
     await this.fileMetadataRepository.delete(id);
+    return { message: 'File metadata deleted' };
   }
 
-  async removeAll(): Promise<void> {
+  async removeAll(): Promise<{ message: string }> {
     await this.fileMetadataRepository.clear();
+    return { message: 'All files metadata cleared' };
   }
 }

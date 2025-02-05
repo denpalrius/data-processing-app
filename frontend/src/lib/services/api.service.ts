@@ -31,7 +31,7 @@ export class ApiService {
 
   async post<TRequest, TResponse>(
     url: string,
-    data: TRequest,
+    data?: TRequest,
     config?: AxiosRequestConfig
   ): Promise<AxiosResponse<TResponse>> {
     try {

@@ -5,6 +5,7 @@ import { v4 } from 'uuid';
 import { FilemetadataService } from 'src/filemetadata/filemetadata.service';
 import { CreateUploadUrlDto } from 'src/utils/create-upload-url-dto';
 import { PresignedUploadUrlResponse } from 'src/utils/presigned-response';
+import { FileStatus } from 'src/utils/file-status';
 
 @Injectable()
 export class StorageService {
@@ -12,45 +13,6 @@ export class StorageService {
     private readonly minioService: MinioService,
     private readonly fileMetadataService: FilemetadataService,
   ) {}
-
-  async uploadFile(
-    file: Express.Multer.File,
-  ): Promise<{ message: string; data: any }> {
-    const fileId = v4();
-    const objectName = `${fileId}-${file.originalname}`;
-
-    // Upload the file to MinIO
-    const { bucketName, url } = await this.minioService.uploadFile(
-      objectName,
-      file.buffer,
-      {
-        'Content-Type': file.mimetype,
-        'Original-Name': file.originalname,
-        'File-Id': fileId,
-      },
-    );
-
-    // Create metadata
-    const metadata: FileMetadata = {
-      id: fileId,
-      filename: file.originalname,
-      size: file.size,
-      contentType: file.mimetype,
-      bucketName: bucketName,
-      objectName: objectName,
-      bucketUrl: url,
-      status: 'uploaded',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    // Save metadata to the database
-    await this.fileMetadataService.create(metadata);
-
-    console.log('Single file metadata saved');
-
-    return { message: 'File uploaded successfully', data: { metadata } };
-  }
 
   async createPresignedUploadUrl(
     params: CreateUploadUrlDto,
@@ -84,7 +46,7 @@ export class StorageService {
       bucketName: this.minioService.getStagingBucketName(),
       objectName: objectName,
       bucketUrl: url,
-      status: 'pending',
+      status: FileStatus.UPLOADING,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -102,7 +64,7 @@ export class StorageService {
     return presignedResponse;
   }
 
-  async completeUpload(fileId: string, size: number): Promise<FileMetadata> {
+  async completeUpload(fileId: string): Promise<FileMetadata> {
     const metadata = await this.fileMetadataService.findOne(fileId);
     if (!metadata) {
       throw new BadRequestException(
@@ -110,11 +72,10 @@ export class StorageService {
       );
     }
 
-    // Update metadata with final size and status
+    // Update metadata and status
     const updatedMetadata: FileMetadata = {
       ...metadata,
-      size,
-      status: 'uploaded',
+      status: FileStatus.STAGED,
       updatedAt: new Date(),
     };
 
@@ -122,11 +83,15 @@ export class StorageService {
       fileId,
       updatedMetadata,
     );
+
+    console.log('File metadata updated:', updatedFileMetadata);
+
     if (!updatedFileMetadata) {
       throw new BadRequestException(
         `Failed to update metadata for file ID: ${fileId}`,
       );
     }
+
     return updatedFileMetadata;
   }
 }

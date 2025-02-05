@@ -8,7 +8,6 @@ import { AppModule } from './app.module';
 import helmet from 'helmet';
 import * as cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import * as csurf from 'csurf';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,8 +29,6 @@ async function bootstrap() {
       max: 100,
     }),
   );
-
-  // app.use(csurf({ cookie: true }));
 
   app.use(
     helmet.contentSecurityPolicy({
