@@ -45,10 +45,9 @@ export class StorageService {
     };
 
     // Save metadata to the database
-    const fileMetadata: FileMetadata =
-      await this.fileMetadataService.create(metadata);
+    await this.fileMetadataService.create(metadata);
 
-    console.log('File metadata saved:', fileMetadata);
+    console.log('Single file metadata saved');
 
     return { message: 'File uploaded successfully', data: { metadata } };
   }

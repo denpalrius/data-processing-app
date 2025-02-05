@@ -33,4 +33,8 @@ export class FilemetadataService {
   async remove(id: number): Promise<void> {
     await this.fileMetadataRepository.delete(id);
   }
+
+  async removeAll(): Promise<void> {
+    await this.fileMetadataRepository.clear();
+  }
 }
