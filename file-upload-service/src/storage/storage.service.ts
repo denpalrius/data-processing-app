@@ -3,15 +3,19 @@ import { MinioService } from 'src/minio/minio.service';
 import { FileMetadata } from 'src/filemetadata/filemetadata.entity';
 import { v4 } from 'uuid';
 import { FilemetadataService } from 'src/filemetadata/filemetadata.service';
+import { JetStreamService } from 'src/jetstream/jetstream.service';
 import { FileStatus } from './enums/file-status';
 import { PresignedUrlRequest } from './dtos/presigned-url-request';
 import { PresignedUrlResponse } from './dtos/presigned-url-response';
 
 @Injectable()
 export class StorageService {
+  private readonly fileUploadCompleteEvent: string = 'file.upload.completed';
+
   constructor(
     private readonly minioService: MinioService,
     private readonly fileMetadataService: FilemetadataService,
+    private readonly jetstreamService: JetStreamService,
   ) {}
 
   async createPresignedUploadUrl(
@@ -84,13 +88,17 @@ export class StorageService {
       updatedMetadata,
     );
 
-    console.log('File metadata updated:', updatedFileMetadata);
-
     if (!updatedFileMetadata) {
       throw new BadRequestException(
         `Failed to update metadata for file ID: ${fileId}`,
       );
     }
+
+    // Publish event to JetStream
+    await this.jetstreamService.publishEvent(
+      this.fileUploadCompleteEvent,
+      updatedFileMetadata,
+    );
 
     return updatedFileMetadata;
   }

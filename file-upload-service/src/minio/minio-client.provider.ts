@@ -1,4 +1,3 @@
-// src/minio/minio-client.provider.ts
 import { Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client } from 'minio';
@@ -16,8 +15,6 @@ export const MinioConnectionProvider: Provider = {
       accessKey: configService.get('MINIO_ACCESS_KEY'),
       secretKey: configService.get('MINIO_SECRET_KEY'),
     });
-
-    // console.log('MinIO client initialized');
 
     return client;
   },

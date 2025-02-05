@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@nats-io/jetstream':
+        specifier: 3.0.0-37
+        version: 3.0.0-37
       '@nestjs/common':
         specifier: ^11.0.7
         version: 11.0.7(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1)
@@ -23,9 +26,6 @@ importers:
       '@nestjs/platform-express':
         specifier: ^11.0.7
         version: 11.0.7(@nestjs/common@11.0.7(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@11.0.7)
-      '@nestjs/platform-socket.io':
-        specifier: ^11.0.7
-        version: 11.0.7(@nestjs/common@11.0.7(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/websockets@11.0.7)(rxjs@7.8.1)
       '@nestjs/swagger':
         specifier: ^11.0.3
         version: 11.0.3(@nestjs/common@11.0.7(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@11.0.7)(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)
@@ -111,9 +111,6 @@ importers:
       '@types/node':
         specifier: ^22.10.7
         version: 22.13.0
-      '@types/socket.io':
-        specifier: ^3.0.2
-        version: 3.0.2
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.2
@@ -756,6 +753,20 @@ packages:
     resolution: {integrity: sha512-zM0mVWSXE0a0h9aKACLwKmD6nHcRiKrPpCfvaKqG1CqDEyjEawId0ocXxVzPMCAm6kkWr2P025msfxXEnt8UGQ==}
     engines: {node: '>= 10'}
 
+  '@nats-io/jetstream@3.0.0-37':
+    resolution: {integrity: sha512-hnYON3MrHWnEXAqGEoxoQ7TcGp7McqKPtZGKgga2I/R87c5QVOQOxDzP6y5YNiqO+y+nayGUXb3cM4qcYwLBMQ==}
+
+  '@nats-io/nats-core@3.0.0-50':
+    resolution: {integrity: sha512-Kur1/yhzNrpcpu+OhsQ89k9Ge1woEWJd5FV3tpp0BtpRWMlIth3StBiADguynbKSQCkBAOUQ+C0kRnFW8zOIeg==}
+
+  '@nats-io/nkeys@2.0.2':
+    resolution: {integrity: sha512-0JTyVl9P+UJyjUBDWP9589TuUKXJQ8tDkVRgi02X/MMzW997+4FykirvZEkIe6ZAhiLIBN+NpN8ULMMt6mDrbA==}
+    engines: {node: '>=18.0.0'}
+
+  '@nats-io/nuid@2.0.3':
+    resolution: {integrity: sha512-TpA3HEBna/qMVudy+3HZr5M3mo/L1JPofpVT4t0HkFGkz2Cn9wrlrQC8tvR8Md5Oa9//GtGG26eN0qEWF5Vqew==}
+    engines: {node: '>= 18.x'}
+
   '@nestjs/cli@11.0.2':
     resolution: {integrity: sha512-y1dKk+Q94vnWhJe8eoz1Qs5WIYHSgO0xZttsFnDbYW1A6CBUVanc4RocbiyhwC/GjWPO4D5JmTXjW5mRH6wprA==}
     engines: {node: '>= 20.11'}
@@ -1137,10 +1148,6 @@ packages:
 
   '@types/serve-static@1.15.7':
     resolution: {integrity: sha512-W8Ym+h8nhuRwaKPaDw34QUkwsGi6Rc4yYqvKFo5rm2FUEhCFbzVWrxXUxuKK8TASjWsysJY0nsmNCGhCOIsrOw==}
-
-  '@types/socket.io@3.0.2':
-    resolution: {integrity: sha512-pu0sN9m5VjCxBZVK8hW37ZcMe8rjn4HHggBN5CbaRTvFwv5jOmuIRZEuddsBPa9Th0ts0SIo3Niukq+95cMBbQ==}
-    deprecated: This is a stub types definition. socket.io provides its own type definitions, so you do not need this installed.
 
   '@types/stack-utils@2.0.3':
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
@@ -4718,6 +4725,21 @@ snapshots:
       '@napi-rs/nice-win32-x64-msvc': 1.0.1
     optional: true
 
+  '@nats-io/jetstream@3.0.0-37':
+    dependencies:
+      '@nats-io/nats-core': 3.0.0-50
+
+  '@nats-io/nats-core@3.0.0-50':
+    dependencies:
+      '@nats-io/nkeys': 2.0.2
+      '@nats-io/nuid': 2.0.3
+
+  '@nats-io/nkeys@2.0.2':
+    dependencies:
+      tweetnacl: 1.0.3
+
+  '@nats-io/nuid@2.0.3': {}
+
   '@nestjs/cli@11.0.2(@swc/cli@0.6.0(@swc/core@1.10.14)(chokidar@4.0.3))(@swc/core@1.10.14)(@types/node@22.13.0)':
     dependencies:
       '@angular-devkit/core': 19.1.3(chokidar@4.0.3)
@@ -4819,6 +4841,7 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+    optional: true
 
   '@nestjs/schematics@11.0.0(chokidar@4.0.3)(typescript@5.7.3)':
     dependencies:
@@ -4911,7 +4934,8 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@socket.io/component-emitter@3.1.2': {}
+  '@socket.io/component-emitter@3.1.2':
+    optional: true
 
   '@sqltools/formatter@1.2.5': {}
 
@@ -5031,6 +5055,7 @@ snapshots:
   '@types/cors@2.8.17':
     dependencies:
       '@types/node': 22.13.0
+    optional: true
 
   '@types/eslint-scope@3.7.7':
     dependencies:
@@ -5113,14 +5138,6 @@ snapshots:
       '@types/http-errors': 2.0.4
       '@types/node': 22.13.0
       '@types/send': 0.17.4
-
-  '@types/socket.io@3.0.2':
-    dependencies:
-      socket.io: 4.8.1
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
 
   '@types/stack-utils@2.0.3': {}
 
@@ -5378,6 +5395,7 @@ snapshots:
     dependencies:
       mime-types: 2.1.35
       negotiator: 0.6.3
+    optional: true
 
   accepts@2.0.0:
     dependencies:
@@ -5544,7 +5562,8 @@ snapshots:
 
   base64-js@1.5.1: {}
 
-  base64id@2.0.0: {}
+  base64id@2.0.0:
+    optional: true
 
   bin-version-check@5.1.0:
     dependencies:
@@ -5810,7 +5829,8 @@ snapshots:
 
   cookie@0.7.1: {}
 
-  cookie@0.7.2: {}
+  cookie@0.7.2:
+    optional: true
 
   cookiejar@2.1.4: {}
 
@@ -5950,7 +5970,8 @@ snapshots:
 
   encodeurl@2.0.0: {}
 
-  engine.io-parser@5.2.3: {}
+  engine.io-parser@5.2.3:
+    optional: true
 
   engine.io@6.6.4:
     dependencies:
@@ -5967,6 +5988,7 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+    optional: true
 
   enhanced-resolve@5.18.0:
     dependencies:
@@ -7196,7 +7218,8 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  negotiator@0.6.3: {}
+  negotiator@0.6.3:
+    optional: true
 
   negotiator@1.0.0: {}
 
@@ -7683,6 +7706,7 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+    optional: true
 
   socket.io-parser@4.2.4:
     dependencies:
@@ -7690,6 +7714,7 @@ snapshots:
       debug: 4.3.6
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   socket.io@4.8.1:
     dependencies:
@@ -7704,6 +7729,7 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+    optional: true
 
   sort-keys-length@1.0.1:
     dependencies:
@@ -8194,7 +8220,8 @@ snapshots:
       imurmurhash: 0.1.4
       signal-exit: 3.0.7
 
-  ws@8.17.1: {}
+  ws@8.17.1:
+    optional: true
 
   xml2js@0.6.2:
     dependencies:

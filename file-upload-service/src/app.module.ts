@@ -3,13 +3,12 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
-import { AuthModule } from './auth/auth.module';
 import { StorageModule } from './storage/storage.module';
-import { UploadModule } from './upload/upload.module';
 import { NatsModule } from './nats/nats.module';
 import { FileMetadata } from './filemetadata/filemetadata.entity';
 import { MinioModule } from './minio/minio.module';
 import { FilemetadataModule } from './filemetadata/filemetadata.module';
+import { JetstreamModule } from './jetstream/jetstream.module';
 import minioConfig from './minio/minio.config';
 
 @Module({
@@ -28,12 +27,11 @@ import minioConfig from './minio/minio.config';
       entities: [FileMetadata],
       synchronize: true,
     }),
-    AuthModule,
     StorageModule,
-    UploadModule,
     NatsModule,
     MinioModule,
     FilemetadataModule,
+    JetstreamModule,
   ],
   controllers: [AppController],
   providers: [],
