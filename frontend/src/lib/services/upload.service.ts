@@ -4,11 +4,25 @@ import { PresignedUrlRequest } from "../models/presigned-url-request";
 import { PresignedUrlResponse } from "../models/presigned-url-response";
 import { ApiService } from "./api.service";
 
+const allowedFileTypes = [
+  "text/csv",
+  "application/sql",
+  "application/json",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+];
+
 const apiService = new ApiService();
 
 export async function getPresignedUrl(
   request: PresignedUrlRequest
 ): Promise<PresignedUrlResponse> {
+  if (!allowedFileTypes.includes(request.contentType)) {
+    throw new Error(
+      "Unsupported file type (Supported file types: CSV, JSON, XLSX)"
+    );
+  }
+
   try {
     const response = await apiService.post<
       PresignedUrlRequest,
@@ -16,8 +30,7 @@ export async function getPresignedUrl(
     >(URL_PART_PRESIGNED_URL, request);
 
     return response.data;
-  } catch (error) {
-    console.error("Error fetching presigned URL:", error);
+  } catch (error: any) {
     throw new Error("Failed to get presigned URL");
   }
 }
@@ -50,14 +63,9 @@ export async function completeFileUpload(fileId: string): Promise<boolean> {
       `${URL_PART_COMPLETE_UPLOAD}?fileId=${fileId}`
     );
 
-    console.log("File upload completed successfully:", response);
-
     if (response.status !== HttpStatusCode.Created) {
       throw new Error("Failed to complete file upload");
     }
-
-
-    
 
     return true;
   } catch (error) {

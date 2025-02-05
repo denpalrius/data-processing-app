@@ -1,4 +1,4 @@
-import { FileStatus } from 'src/utils/file-status';
+import { FileStatus } from '../storage/enums/file-status';
 import {
   Entity,
   Column,

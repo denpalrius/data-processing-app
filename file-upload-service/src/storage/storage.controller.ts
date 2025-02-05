@@ -1,19 +1,21 @@
-import { Body, Controller, Post, Query } from '@nestjs/common';
+import { Body, Controller, Post, Query, UsePipes } from '@nestjs/common';
 import { StorageService } from './storage.service';
-import { CreateUploadUrlDto } from 'src/utils/create-upload-url-dto';
-import { PresignedUploadUrlResponse } from 'src/utils/presigned-response';
-import { FileMetadata } from 'src/filemetadata/filemetadata.entity';
 import { ApiOperation } from '@nestjs/swagger';
+import { FileTypeValidationPipe } from './validation/file-type-validation-pipe';
+import { PresignedUrlRequest } from './dtos/presigned-url-request';
+import { PresignedUrlResponse } from './dtos/presigned-url-response';
+import { FileMetadata } from 'src/filemetadata/filemetadata.entity';
 
 @Controller('storage')
 export class StorageController {
   constructor(private readonly storageService: StorageService) {}
 
-  @Post('presigned-url')
   @ApiOperation({ summary: 'Create a presigned URL for file upload' })
+  @Post('presigned-url')
+  @UsePipes(FileTypeValidationPipe)
   async createPresignedUploadUrl(
-    @Body() createUploadUrlDto: CreateUploadUrlDto,
-  ): Promise<PresignedUploadUrlResponse> {
+    @Body() createUploadUrlDto: PresignedUrlRequest,
+  ): Promise<PresignedUrlResponse> {
     return await this.storageService.createPresignedUploadUrl(
       createUploadUrlDto,
     );

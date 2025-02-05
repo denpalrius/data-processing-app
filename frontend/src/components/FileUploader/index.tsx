@@ -30,12 +30,6 @@ const FileUploader: React.FC = () => {
           />
         )}
 
-        <br />
-        <br />
-        <div className="absolute top-24 right-2 bg-white border border-gray-300 rounded-lg shadow-lg p-2 text-xs italic text-gray-700">
-          Accepted file types: .csv, .json, .xls, .xlsx
-        </div>
-
         <ErrorAlert error={error} />
       </div>
     </div>

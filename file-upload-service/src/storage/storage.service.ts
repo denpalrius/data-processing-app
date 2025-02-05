@@ -3,9 +3,9 @@ import { MinioService } from 'src/minio/minio.service';
 import { FileMetadata } from 'src/filemetadata/filemetadata.entity';
 import { v4 } from 'uuid';
 import { FilemetadataService } from 'src/filemetadata/filemetadata.service';
-import { CreateUploadUrlDto } from 'src/utils/create-upload-url-dto';
-import { PresignedUploadUrlResponse } from 'src/utils/presigned-response';
-import { FileStatus } from 'src/utils/file-status';
+import { FileStatus } from './enums/file-status';
+import { PresignedUrlRequest } from './dtos/presigned-url-request';
+import { PresignedUrlResponse } from './dtos/presigned-url-response';
 
 @Injectable()
 export class StorageService {
@@ -15,9 +15,9 @@ export class StorageService {
   ) {}
 
   async createPresignedUploadUrl(
-    params: CreateUploadUrlDto,
+    params: PresignedUrlRequest,
     expiryMinutes: number = 30,
-  ): Promise<PresignedUploadUrlResponse> {
+  ): Promise<PresignedUrlResponse> {
     if (!params.filename || !params.contentType) {
       throw new BadRequestException('Filename and content type are required');
     }
@@ -53,7 +53,7 @@ export class StorageService {
 
     await this.fileMetadataService.create(metadata);
 
-    const presignedResponse: PresignedUploadUrlResponse = {
+    const presignedResponse: PresignedUrlResponse = {
       url,
       expires: expires,
       fileId,

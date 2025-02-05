@@ -1,4 +1,4 @@
-export interface CreateUploadUrlDto {
+export interface PresignedUrlRequest {
   filename: string;
   contentType: string;
   size?: number;

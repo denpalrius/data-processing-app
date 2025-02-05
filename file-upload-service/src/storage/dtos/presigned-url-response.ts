@@ -1,4 +1,4 @@
-export interface PresignedUploadUrlResponse {
+export interface PresignedUrlResponse {
   url: string;
   expires?: Date;
   fileId: string;
