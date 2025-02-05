@@ -1,0 +1,8 @@
+nats-py
+minio
+pandas
+libmagic
+python-magic
+openpyxl
+python-dotenv
+watchdog

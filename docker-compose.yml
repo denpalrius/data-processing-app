@@ -32,12 +32,8 @@ services:
       memlock: -1
     ports:
       - "6379:6379"  # Same port as Redis for compatibility
-    # environment:
-    #   - DFLY_user_default_username=admin
-    #   - DFLY_user_default_password=dev123
     volumes:
       - ./volumes/dragonfly-data:/data
-    # command: ["--requirepass", "dev123_admin"]
 
   nats:
     image: nats:latest
@@ -48,3 +44,10 @@ services:
     volumes:
       - ./volumes/nats-data:/data
     command: "-js"  # Enable JetStream
+
+    #   - ./infrastructure/nats-server/nats-server.conf:/etc/nats/nats-server.conf
+    # command: "-c /etc/nats/nats-server.conf -js"
+
+
+# >>>> Ideally, this secrets would not be in the repo. They are only inclided here for demo purposes. <<<<
+    

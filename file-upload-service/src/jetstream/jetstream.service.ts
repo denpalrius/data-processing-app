@@ -4,12 +4,14 @@ import {
   OnModuleInit,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   connect,
   NatsConnection,
   JetStreamClient,
   JetStreamManager,
   JSONCodec,
+  RetentionPolicy,
 } from 'nats';
 
 @Injectable()
@@ -20,31 +22,50 @@ export class JetStreamService implements OnModuleInit, OnModuleDestroy {
   private jsm: JetStreamManager;
 
   private readonly jc = JSONCodec();
-  private readonly fileUploadCompleteEvent: string = 'file.upload.completed';
+
+  constructor(private configService: ConfigService) {}
 
   async onModuleInit() {
-    this.nc = await connect({ servers: 'nats://localhost:4222' });
+    const natsServers = this.configService.get<string>('NATS_SERVERS');
+    this.nc = await connect({ servers: natsServers });
     this.js = this.nc.jetstream();
     this.jsm = await this.nc.jetstreamManager();
     this.logger.log('Connected to NATS JetStream');
-    await this.createStream();
+
+    await this.createStreams();
   }
 
-  async createStream() {
-    try {
-      await this.jsm.streams.add({
+  async createStreams() {
+    const streams = [
+      {
         name: 'FILE_UPLOADS',
         subjects: ['file.upload.*'],
-      });
-      this.logger.log('JetStream FILE_UPLOADS stream created successfully');
-    } catch (error) {
-      if ((error as Error).message.includes('stream name already in use')) {
+      },
+      {
+        name: 'FILE_PROCESSING',
+        subjects: ['file.processing.*'],
+      },
+    ];
+
+    for (const stream of streams) {
+      try {
+        await this.jsm.streams.info(stream.name);
         this.logger.log(
-          'JetStream FILE_UPLOADS stream already exists, skipping creation',
+          `JetStream ${stream.name} stream already exists, skipping creation`,
         );
-      } else {
-        this.logger.error('Error creating JetStream stream:', error.stack);
-        throw error;
+      } catch (error) {
+        if ((error as Error).message.includes('stream not found')) {
+          await this.jsm.streams.add(stream);
+          this.logger.log(
+            `JetStream ${stream.name} stream created successfully`,
+          );
+        } else {
+          this.logger.error(
+            `Error checking ${stream.name} stream:`,
+            error.stack,
+          );
+          throw error;
+        }
       }
     }
   }
@@ -53,6 +74,7 @@ export class JetStreamService implements OnModuleInit, OnModuleDestroy {
     try {
       const msg = this.jc.encode(data);
       const pub = await this.js.publish(subject, msg);
+
       this.logger.log(`Published event: ${subject}; fileId; ${data.id};`);
 
       return pub;

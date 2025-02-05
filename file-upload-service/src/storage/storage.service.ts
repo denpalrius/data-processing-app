@@ -7,16 +7,22 @@ import { JetStreamService } from 'src/jetstream/jetstream.service';
 import { FileStatus } from './enums/file-status';
 import { PresignedUrlRequest } from './dtos/presigned-url-request';
 import { PresignedUrlResponse } from './dtos/presigned-url-response';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class StorageService {
-  private readonly fileUploadCompleteEvent: string = 'file.upload.completed';
+  private readonly natsSubject: string;
 
   constructor(
+    private readonly configService: ConfigService,
     private readonly minioService: MinioService,
     private readonly fileMetadataService: FilemetadataService,
     private readonly jetstreamService: JetStreamService,
-  ) {}
+  ) {
+    this.natsSubject =
+      this.configService.get<string>('NATS_STAGED_SUBJECT') ||
+      'file.upload.completed';
+  }
 
   async createPresignedUploadUrl(
     params: PresignedUrlRequest,
@@ -27,6 +33,7 @@ export class StorageService {
     }
 
     const fileId = v4();
+    params.filename = this.toSnakeCase(params.filename);
     const objectName = `${fileId}-${params.filename}`;
 
     // Generate presigned PUT URL
@@ -96,10 +103,19 @@ export class StorageService {
 
     // Publish event to JetStream
     await this.jetstreamService.publishEvent(
-      this.fileUploadCompleteEvent,
+      this.natsSubject,
       updatedFileMetadata,
     );
 
     return updatedFileMetadata;
+  }
+
+  toSnakeCase(str: string): string {
+    return str
+      .replace(/\s+/g, '_') // Replace spaces with underscores
+      .replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`) // Convert camel case to snake case
+      .replace(/-+/g, '_') // Replace hyphens with underscores
+      .replace(/__+/g, '_') // Replace multiple underscores with a single underscore
+      .replace(/^_+|_+$/g, ''); // Remove leading and trailing underscores
   }
 }
