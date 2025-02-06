@@ -1,13 +1,17 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Client, StompConfig } from '@stomp/stompjs';
 
 @Injectable()
 export class FrontendService implements OnModuleDestroy {
   private readonly logger = new Logger(FrontendService.name);
-  private socket: WebSocket | null = null;
+  private client: Client;
 
   constructor(private readonly configService: ConfigService) {
-    const websocketUrl = this.configService.get<string>('WEBSOCKET_URL');
+    const websocketUrl = this.configService.get<string>(
+      'WEBSOCKET_URL',
+      'ws://localhost:8080/ws',
+    );
 
     if (!websocketUrl) {
       this.logger.error('WEBSOCKET_URL is not defined');
@@ -15,41 +19,52 @@ export class FrontendService implements OnModuleDestroy {
     }
 
     this.logger.log(`Connecting to WebSocket server at: ${websocketUrl}`);
-    // this.socket = new WebSocket(websocketUrl);
-    this.socket = new WebSocket("http://localhost:8080/ws");
 
-    this.socket.onopen = () => {
+    const stompConfig: StompConfig = {
+      brokerURL: websocketUrl,
+      connectHeaders: {},
+      debug: (str) => {
+        this.logger.log(str);
+      },
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
+    };
+
+    this.client = new Client(stompConfig);
+
+    this.client.onConnect = (frame) => {
       this.logger.log('Connected to WebSocket server');
       this.sendMessage({ type: 'fileProcessed', data: 'test' });
     };
 
-    this.socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      this.logger.log(`Received message: ${JSON.stringify(data)}`);
+    this.client.onStompError = (frame) => {
+      this.logger.error(`Broker reported error: ${frame.headers['message']}`);
+      this.logger.error(`Additional details: ${frame.body}`);
     };
 
-    this.socket.onerror = (error) => {
-      this.logger.error(`WebSocket error: ${JSON.stringify(error)}`);
-    };
-
-    this.socket.onclose = () => {
+    this.client.onWebSocketClose = (evt) => {
       this.logger.log('Disconnected from WebSocket server');
     };
 
-    this.sendMessage({ type: 'fileProcessed', data: 'test' });
+    this.client.activate();
   }
 
   sendMessage(message: Record<string, any>) {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify(message));
+    if (this.client && this.client.connected) {
+      this.client.publish({
+        destination: '/topic/messages',
+        body: JSON.stringify(message),
+      });
+      this.logger.log(`Message sent: ${JSON.stringify(message)}`);
     } else {
-      this.logger.error('WebSocket is not open. Unable to send message.');
+      this.logger.error('WebSocket is not connected. Unable to send message.');
     }
   }
 
-  onModuleDestroy() {
-    if (this.socket) {
-      this.socket.close();
+  async onModuleDestroy() {
+    if (this.client) {
+      await this.client.deactivate();
       this.logger.log('Disconnected from WebSocket server');
     }
   }

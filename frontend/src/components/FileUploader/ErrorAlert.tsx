@@ -12,7 +12,7 @@ export const ErrorAlert: React.FC<ErrorAlertProps> = ({ error }) => {
   if (!error) return null;
 
   return (
-    <Alert variant="destructive">
+    <Alert variant="error">
       <AlertCircle className="h-4 w-4" />
       <div className="text-sm">{error}</div>
     </Alert>

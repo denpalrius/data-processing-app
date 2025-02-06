@@ -1,7 +1,11 @@
 // FilePreview.js
 import React, { useState } from 'react';
 
-const FilePreview = ({ fileContent }) => {
+interface FilePreviewProps {
+  fileContent: Array<{ [key: string]: any }>;
+}
+
+const FilePreview: React.FC<FilePreviewProps> = ({ fileContent }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -9,7 +13,7 @@ const FilePreview = ({ fileContent }) => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = fileContent.slice(indexOfFirstItem, indexOfLastItem);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const paginate = (pageNumber: React.SetStateAction<number>) => setCurrentPage(pageNumber);
 
   const pageNumbers = [];
   for (let i = 1; i <= Math.ceil(fileContent.length / itemsPerPage); i++) {

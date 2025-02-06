@@ -40,7 +40,7 @@ const FileUploader: React.FC = () => {
         <br />
         <br />
         {status === "complete" && fileContent && (
-          <FilePreview fileContent={fileContent} />
+          <FilePreview fileContent={JSON.parse(fileContent)} />
         )}
 
         <ErrorAlert error={error} />

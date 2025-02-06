@@ -143,7 +143,7 @@ export const useFileUploader = () => {
         numRecords
       );
 
-      setFileContent(previewData);
+      setFileContent(previewData as string);
     } catch (error) {
       setError((error as Error).message);
       setStatus("error");

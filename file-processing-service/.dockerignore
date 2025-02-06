@@ -1,0 +1,11 @@
+
+__pycache__
+
+dist
+*.log
+*.md
+.git
+
+*.pyc
+
+.env
