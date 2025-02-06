@@ -1,0 +1,34 @@
+name: Docker Compose CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:20.10.7
+        options: --privileged
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Compose
+      run: |
+        sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+
+    - name: Build and run Docker Compose services
+      run: docker-compose up -d --build
+
+    # - name: Run tests
+    #   run: docker-compose exec -T <service-name> pnpm test
+
+    - name: Stop Docker Compose services
+      run: docker-compose down
