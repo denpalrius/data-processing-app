@@ -4,11 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { StorageModule } from './storage/storage.module';
-import { NatsModule } from './nats/nats.module';
 import { FileMetadata } from './filemetadata/filemetadata.entity';
 import { MinioModule } from './minio/minio.module';
 import { FilemetadataModule } from './filemetadata/filemetadata.module';
-import { JetstreamModule } from './jetstream/jetstream.module';
+import { JetStreamModule } from './jetstream/jetstream.module';
 import minioConfig from './minio/minio.config';
 
 @Module({
@@ -28,10 +27,9 @@ import minioConfig from './minio/minio.config';
       synchronize: true,
     }),
     StorageModule,
-    NatsModule,
     MinioModule,
     FilemetadataModule,
-    JetstreamModule,
+    JetStreamModule,
   ],
   controllers: [AppController],
   providers: [],

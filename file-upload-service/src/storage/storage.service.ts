@@ -121,9 +121,11 @@ export class StorageService {
       throw new BadRequestException('File not found');
     }
 
-    // if(metadata.status !== FileStatus.PROCESSED) {
-    //   throw new BadRequestException('File is not procesed yet');
-    // }
+    console.log('File metadata:', metadata);
+
+    if (metadata.status !== FileStatus.PROCESSED) {
+      throw new BadRequestException('File is not procesed yet');
+    }
 
     // Download the file from MinIO
     const localPath = path.join('/tmp', metadata.objectName);

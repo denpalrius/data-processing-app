@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { FileMetadata } from './filemetadata.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { FileStatus } from 'src/storage/enums/file-status';
 
 @Injectable()
 export class FilemetadataService {
@@ -27,6 +28,14 @@ export class FilemetadataService {
     fileMetadata: FileMetadata,
   ): Promise<FileMetadata | null> {
     await this.fileMetadataRepository.update(id, fileMetadata);
+    return await this.findOne(id);
+  }
+
+  async updateStatus(
+    id: string,
+    status: FileStatus,
+  ): Promise<FileMetadata | null> {
+    await this.fileMetadataRepository.update(id, { status });
     return await this.findOne(id);
   }
 
