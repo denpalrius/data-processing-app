@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { MinioService } from 'src/minio/minio.service';
 import { FileMetadata } from 'src/filemetadata/filemetadata.entity';
 import { v4 } from 'uuid';
@@ -115,19 +120,19 @@ export class StorageService {
   }
 
   async getFilePreview(fileId: string, numRecords: number = 5): Promise<any> {
-    // Fetch file metadata
     const metadata = await this.fileMetadataService.findOne(fileId);
     if (!metadata) {
-      throw new BadRequestException('File not found');
+      throw new NotFoundException('File not found');
     }
 
-    console.log('File metadata:', metadata);
+    // if (metadata.status !== FileStatus.PROCESSED) {
+    //   throw new UnprocessableEntityException('File is not procesed yet');
+    // }
+    // Add a sleep function to wait for the file to be processed
 
-    if (metadata.status !== FileStatus.PROCESSED) {
-      throw new BadRequestException('File is not procesed yet');
-    }
+    // TODO: For testing witout processing, remove this later
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Download the file from MinIO
     const localPath = path.join('/tmp', metadata.objectName);
     await this.minioService.downloadProcessedFile(
       metadata.objectName,
@@ -141,7 +146,9 @@ export class StorageService {
     } else if (metadata.contentType.includes('excel')) {
       previewData = this.previewExcelFile(localPath, numRecords);
     } else {
-      throw new BadRequestException('Unsupported file type for preview');
+      throw new UnprocessableEntityException(
+        'Unsupported file type for preview',
+      );
     }
 
     // Clean up the local file

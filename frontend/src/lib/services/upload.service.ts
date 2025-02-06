@@ -79,13 +79,13 @@ export async function completeFileUpload(fileId: string): Promise<boolean> {
   }
 }
 
-export const fetchFilePreview = async (fileId: string, numRecords: number) => {
-  const response = await apiService.post(
+export const fetchFilePreview = async (fileId: string, numRecords: number) => {  
+  const response = await apiService.get(
     `${URL_PART_UPLOAD}?fileId=${fileId}&numRecords=${numRecords}`
   );
 
-  if (response.status !== HttpStatusCode.OK) {
+  if (response.status !== HttpStatusCode.Ok) {
     throw new Error("Failed to fetch file preview");
   }
-  return response.data;
-};
+  return response.data; 
+};  

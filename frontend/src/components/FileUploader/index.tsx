@@ -9,8 +9,15 @@ import FilePreview from "./FilePreview";
 import { Info } from "lucide-react";
 
 const FileUploader: React.FC = () => {
-  const { file, progress, status, error, fileContent, handleFileSelect, handleUpload } =
-    useFileUploader();
+  const {
+    file,
+    progress,
+    status,
+    error,
+    fileContent,
+    handleFileSelect,
+    handleUpload,
+  } = useFileUploader();
 
   const [showAcceptedFileTypes, setShowAcceptedFileTypes] = useState(false);
 
@@ -30,7 +37,8 @@ const FileUploader: React.FC = () => {
             onUpload={handleUpload}
           />
         )}
-
+        <br />
+        <br />
         {status === "complete" && fileContent && (
           <FilePreview fileContent={fileContent} />
         )}

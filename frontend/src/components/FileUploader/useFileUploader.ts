@@ -83,9 +83,10 @@ export const useFileUploader = () => {
         setFile(selectedFile);
         setStatus("ready");
         setError(null);
+        setFileContent(""); // Reset fileContent when a new file is selected
       }
     },
-    [setFile, setStatus, setError]
+    [setFile, setStatus, setError, setFileContent]
   );
 
   const handleUpload = useCallback(async () => {
@@ -136,10 +137,11 @@ export const useFileUploader = () => {
       setStatus("complete");
 
       // Fetch file preview data
-      const numRecords = 20; // Fetch jst 20 records for preview
-      const previewData = await fetchFilePreview(presignedRes.fileId, numRecords);
-      
-      console.log("File preview data:", previewData);
+      const numRecords = 50; // Fetch just 50 records for preview
+      const previewData = await fetchFilePreview(
+        presignedRes.fileId,
+        numRecords
+      );
 
       setFileContent(previewData);
     } catch (error) {

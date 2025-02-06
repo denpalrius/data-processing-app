@@ -29,10 +29,8 @@ export class JetStreamService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     try {
-      // Get the NATS connection from the client proxy
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const connection = await this.client.connect();
-      // Type assertion since we know it's a NATS connection
       this.nc = connection as unknown as NatsConnection;
       this.js = this.nc.jetstream();
       this.jsm = await this.nc.jetstreamManager();

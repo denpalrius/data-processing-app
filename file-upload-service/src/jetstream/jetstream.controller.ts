@@ -2,7 +2,7 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { FilemetadataService } from '../filemetadata/filemetadata.service';
 import { FileStatus } from 'src/storage/enums/file-status';
-import { FrontendGateway } from './frontend.gateway';
+import { FrontendService } from './frontend.service';
 
 @Controller('jetstream')
 export class JetstreamController {
@@ -10,7 +10,7 @@ export class JetstreamController {
 
   constructor(
     private readonly fileMetadataService: FilemetadataService,
-    private readonly frontendGateway: FrontendGateway,
+    private readonly frontendGateway: FrontendService,
   ) {}
 
   @MessagePattern('file.processing.*')
@@ -27,8 +27,8 @@ export class JetstreamController {
         `File status updated to 'processed' for file ID: ${fileId}`,
       );
 
-      this.frontendGateway.handleFileProcessed({
-        fileId: data['id'] as string,
+      this.frontendGateway.sendMessage({
+        fileId: fileId,
         status: FileStatus.PROCESSED,
       });
     } catch (error) {
