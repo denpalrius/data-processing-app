@@ -55,6 +55,9 @@ Open your browser and navigate to `http://localhost:81`. You should see the fron
 Diffeent layers of restrictions have been placed for file/mime types from the frontend, the upload service and the processing service.
 For preview, use either a `CSV` or `Excel` file.
 
+> For quick prototyping, most of the secrets are in plain text and included with the config files. An idel situation would be to use a secret store to store and retrieve them.
+
+
 ## Cleaning Up
 
 To stop and remove the Docker Compose services, run the following command:
