@@ -50,7 +50,10 @@ Alternatively, you can use the provided `deploy.sh` script to apply the manifest
 
 ## Testing the Application
 
-Open your browser and navigate to `http://localhost:81`. You should see the frontend application and be able to interact with it
+Open your browser and navigate to `http://localhost:81`. You should see the frontend application and be able to interact with it.
+
+Diffeent layers of restrictions have been placed for file/mime types from the frontend, the upload service and the processing service.
+For preview, use either a `CSV` or `Excel` file.
 
 ## Cleaning Up
 
