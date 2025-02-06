@@ -109,4 +109,27 @@ export class MinioService implements OnModuleInit {
       throw new Error(`File upload failed: ${(error as Error).message}`);
     }
   }
+
+  async downloadProcessedFile(
+    objectName: string,
+    tempPath: string,
+  ): Promise<void> {
+    try {
+      const bucketName = this.processedBucket;
+      const stream = await this.minioClient.getObject(bucketName, objectName);
+      const chunks: Buffer[] = [];
+      for await (const chunk of stream as AsyncIterable<Buffer>) {
+        chunks.push(chunk);
+      }
+      const fileBuffer = Buffer.concat(chunks);
+      const fs = await import('fs/promises');
+      await fs.writeFile(tempPath, fileBuffer);
+      this.logger.debug(
+        `File ${objectName} downloaded successfully to ${tempPath}.`,
+      );
+    } catch (error) {
+      this.logger.error(`Failed to download file ${objectName}:`, error);
+      throw new Error(`File download failed: ${(error as Error).message}`);
+    }
+  }
 }

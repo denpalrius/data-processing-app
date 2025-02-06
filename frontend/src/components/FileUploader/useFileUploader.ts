@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import useUploadStore from "../../stores/uploadStore";
 import {
   getPresignedUrl,
   uploadFile,
   completeFileUpload,
+  fetchFilePreview,
 } from "../../lib/services/upload.service";
 import {
   MAX_RETRIES,
@@ -31,14 +32,36 @@ export const useFileUploader = () => {
     setWs,
   } = useUploadStore();
 
+  const [fileContent, setFileContent] = useState<string>("");
+
   useEffect(() => {
     const socket = new WebSocket(WEBSOCKET_URL);
 
+    socket.onopen = () => {
+      console.log("WebSocket connection opened");
+    };
+
     socket.onmessage = (event) => {
+      console.log("WebSocket event received:", event);
       const data = JSON.parse(event.data);
+
       if (data.type === "UPLOAD_STATUS") {
+        console.log("Upload status event received:", data.status);
         setStatus(data.status);
+      } else if (data.type === "FILE_PREVIEW") {
+        console.log("File preview event received:", data.content);
+        setFileContent(data.content);
+      } else {
+        console.log("Unknown event type received:", data.type);
       }
+    };
+
+    socket.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    socket.onclose = (event) => {
+      console.log("WebSocket connection closed:", event);
     };
 
     setWs(socket);
@@ -111,6 +134,14 @@ export const useFileUploader = () => {
 
       setProgress(100);
       setStatus("complete");
+
+      // Fetch file preview data
+      const numRecords = 20; // Fetch jst 20 records for preview
+      const previewData = await fetchFilePreview(presignedRes.fileId, numRecords);
+      
+      console.log("File preview data:", previewData);
+
+      setFileContent(previewData);
     } catch (error) {
       setError((error as Error).message);
       setStatus("error");
@@ -122,6 +153,7 @@ export const useFileUploader = () => {
     progress,
     status,
     error,
+    fileContent,
     handleFileSelect,
     handleUpload,
   };

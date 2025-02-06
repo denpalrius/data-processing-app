@@ -1,8 +1,13 @@
 import { HttpStatusCode } from "axios";
-import { URL_PART_COMPLETE_UPLOAD, URL_PART_PRESIGNED_URL } from "../constants";
+import {
+  URL_PART_COMPLETE_UPLOAD,
+  URL_PART_PRESIGNED_URL,
+  URL_PART_UPLOAD,
+} from "../constants";
 import { PresignedUrlRequest } from "../models/presigned-url-request";
 import { PresignedUrlResponse } from "../models/presigned-url-response";
 import { ApiService } from "./api.service";
+import axios from "axios";
 
 const allowedFileTypes = [
   "text/csv",
@@ -73,3 +78,14 @@ export async function completeFileUpload(fileId: string): Promise<boolean> {
     throw new Error("Failed to complete file upload");
   }
 }
+
+export const fetchFilePreview = async (fileId: string, numRecords: number) => {
+  const response = await apiService.post(
+    `${URL_PART_UPLOAD}?fileId=${fileId}&numRecords=${numRecords}`
+  );
+
+  if (response.status !== HttpStatusCode.OK) {
+    throw new Error("Failed to fetch file preview");
+  }
+  return response.data;
+};

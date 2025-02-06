@@ -11,7 +11,9 @@ import {
   JetStreamClient,
   JetStreamManager,
   JSONCodec,
-  RetentionPolicy,
+  AckPolicy,
+  ConsumerConfig,
+  consumerOpts,
 } from 'nats';
 
 @Injectable()
@@ -33,6 +35,7 @@ export class JetStreamService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Connected to NATS JetStream');
 
     await this.createStreams();
+    // await this.subscribeToFileProcessingComplete();
   }
 
   async createStreams() {
@@ -80,6 +83,42 @@ export class JetStreamService implements OnModuleInit, OnModuleDestroy {
       return pub;
     } catch (error) {
       this.logger.error(`Error publishing to ${subject}:`, error?.stack);
+      throw error;
+    }
+  }
+
+  async subscribeToFileProcessingComplete() {
+    const subject = 'file.processing.complete';
+    try {
+      console.log('subscribing to file.processing.complete');
+
+      // const consumerConfig: Partial<ConsumerConfig> = {
+      //   durable_name: 'file-processing-complete-consumer',
+      //   ack_policy: AckPolicy.Explicit,
+      // };
+
+      // await this.jsm.consumers.add('FILE_PROCESSING', consumerConfig);
+
+      const opts = consumerOpts();
+      opts.durable('file-processing-complete-consumer');
+      opts.ackExplicit();
+      opts.deliverTo('file-processing-complete-consumer');
+
+      const sub = await this.js.subscribe(subject, opts);
+
+      this.logger.log(`Subscribed to ${subject}`);
+
+      // for await (const msg of sub) {
+        // const data = this.jc.decode(msg.data);
+        // this.logger.log(
+        //   `Received message on ${subject}: ${JSON.stringify(data)}`,
+        // );
+        // Process the message here
+        // Acknowledge the message
+        // await msg.ack();
+      // }
+    } catch (error) {
+      this.logger.error(`Failed to subscribe to ${subject}:`, error.stack);
       throw error;
     }
   }

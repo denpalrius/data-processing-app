@@ -8,6 +8,11 @@ import { FileStatus } from './enums/file-status';
 import { PresignedUrlRequest } from './dtos/presigned-url-request';
 import { PresignedUrlResponse } from './dtos/presigned-url-response';
 import { ConfigService } from '@nestjs/config';
+import * as csv from 'csv-parser';
+import * as xlsx from 'xlsx';
+import * as fs from 'fs';
+import * as path from 'path';
+import { parse } from 'fast-csv';
 
 @Injectable()
 export class StorageService {
@@ -31,7 +36,6 @@ export class StorageService {
     if (!params.filename || !params.contentType) {
       throw new BadRequestException('Filename and content type are required');
     }
-
     const fileId = v4();
     params.filename = this.toSnakeCase(params.filename);
     const objectName = `${fileId}-${params.filename}`;
@@ -108,6 +112,74 @@ export class StorageService {
     );
 
     return updatedFileMetadata;
+  }
+
+  async getFilePreview(fileId: string, numRecords: number = 5): Promise<any> {
+    // Fetch file metadata
+    const metadata = await this.fileMetadataService.findOne(fileId);
+    if (!metadata) {
+      throw new BadRequestException('File not found');
+    }
+
+    // if(metadata.status !== FileStatus.PROCESSED) {
+    //   throw new BadRequestException('File is not procesed yet');
+    // }
+
+    // Download the file from MinIO
+    const localPath = path.join('/tmp', metadata.objectName);
+    await this.minioService.downloadProcessedFile(
+      metadata.objectName,
+      localPath,
+    );
+
+    // Read and preview the file content
+    let previewData;
+    if (metadata.contentType === 'text/csv') {
+      previewData = await this.previewCsvFile(localPath, numRecords);
+    } else if (metadata.contentType.includes('excel')) {
+      previewData = this.previewExcelFile(localPath, numRecords);
+    } else {
+      throw new BadRequestException('Unsupported file type for preview');
+    }
+
+    // Clean up the local file
+    fs.unlinkSync(localPath);
+
+    return previewData;
+  }
+
+  private async previewCsvFile(
+    filePath: string,
+    numRecords: number,
+  ): Promise<any[]> {
+    const results: any[] = [];
+    const stream = fs.createReadStream(filePath).pipe(csv());
+
+    return new Promise((resolve, reject) => {
+      stream.on('data', (data) => {
+        if (results.length < numRecords) {
+          results.push(data);
+        }
+        if (results.length >= numRecords) {
+          // Once we have enough records, stop reading the file
+          stream.pause();
+          stream.destroy();
+        }
+      });
+
+      stream.on('close', () => resolve(results));
+      stream.on('end', () => resolve(results));
+      stream.on('error', (error) => reject(error));
+    });
+  }
+
+  private previewExcelFile(filePath: string, numRecords: number): any[] {
+    const workbook = xlsx.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const jsonData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+
+    return jsonData.slice(0, numRecords);
   }
 
   toSnakeCase(str: string): string {

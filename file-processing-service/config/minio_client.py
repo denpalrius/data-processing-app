@@ -56,11 +56,9 @@ class MinioClient:
             logger.error(f"Failed to download {object_name}: {e}")
             raise
 
-    def upload_file(self, local_path, object_name):
+    def upload_file(self, bucketName, local_path, object_name):
         try:
-            self.client.fput_object(
-                configs.MINIO_PROCESSED_BUCKET, object_name, local_path
-            )
+            self.client.fput_object(bucketName, object_name, local_path)
             logger.info(f"Successfully uploaded {local_path} as {object_name}")
         except Exception as e:
             logger.error(f"Failed to upload {local_path}: {e}")

@@ -25,16 +25,6 @@ services:
     volumes:
       - ./volumes/minio-data:/data
 
-  dragonfly:
-    image: docker.dragonflydb.io/dragonflydb/dragonfly
-    container_name: dragonfly
-    ulimits:
-      memlock: -1
-    ports:
-      - "6379:6379"  # Same port as Redis for compatibility
-    volumes:
-      - ./volumes/dragonfly-data:/data
-
   nats:
     image: nats:latest
     container_name: nats
@@ -47,6 +37,21 @@ services:
 
     #   - ./infrastructure/nats-server/nats-server.conf:/etc/nats/nats-server.conf
     # command: "-c /etc/nats/nats-server.conf -js"
+
+  websocket-server:
+    container_name: websocket-server
+    build:
+      context: ./websocket-server
+    ports:
+      - "0.0.0.0:8080:8080"
+    environment:
+      - PYTHONUNBUFFERED=1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
 
 
 # >>>> Ideally, this secrets would not be in the repo. They are only inclided here for demo purposes. <<<<

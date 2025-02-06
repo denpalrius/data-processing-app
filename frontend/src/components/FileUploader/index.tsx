@@ -5,10 +5,11 @@ import { useFileUploader } from "./useFileUploader";
 import { ErrorAlert } from "./ErrorAlert";
 import { FileDisplay } from "./FileDisplay";
 import { UploadZone } from "./UploadZone";
+import FilePreview from "./FilePreview";
 import { Info } from "lucide-react";
 
 const FileUploader: React.FC = () => {
-  const { file, progress, status, error, handleFileSelect, handleUpload } =
+  const { file, progress, status, error, fileContent, handleFileSelect, handleUpload } =
     useFileUploader();
 
   const [showAcceptedFileTypes, setShowAcceptedFileTypes] = useState(false);
@@ -28,6 +29,10 @@ const FileUploader: React.FC = () => {
             status={status}
             onUpload={handleUpload}
           />
+        )}
+
+        {status === "complete" && fileContent && (
+          <FilePreview fileContent={fileContent} />
         )}
 
         <ErrorAlert error={error} />

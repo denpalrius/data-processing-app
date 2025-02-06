@@ -1,5 +1,7 @@
 import logging
 import json
+import asyncio
+import websockets
 from config.nats_client import NatsClient
 from config.minio_client import MinioClient
 from config import configs
@@ -11,21 +13,26 @@ logger = logging.getLogger(__name__)
 
 
 class FileProcessor:
-    def __init__(self, nats_client: NatsClient, minio_client: MinioClient):
+    def __init__(
+        self,
+        nats_client: NatsClient,
+        minio_client: MinioClient
+    ):
         self.nats_client = nats_client
         self.minio_client = minio_client
+        self.websocket_url = configs.WEBSOCKET_URL
 
     async def process_event(self, msg):
 
         logger.info("===============NEW MESSAGE=================")
-        logger.info(msg)
+        logger.info(msg.data.decode())
 
         file_metadata = json.loads(msg.data.decode())
 
-        fileId = file_metadata["id"]
+        file_id = file_metadata["id"]
         object_name = file_metadata["objectName"]
 
-        logger.info(f"Processing file with ID: {file_metadata['id']}")
+        logger.info(f"Processing file with ID: {file_id}")
 
         local_path = f"/tmp/{object_name}"
         self.minio_client.download_file(object_name, local_path)
@@ -38,28 +45,41 @@ class FileProcessor:
             output_path = f"/tmp/processed-{object_name}"
             self.process_file(local_path, output_path)
 
-            # Upload cleaned file back to MinIO
-            self.minio_client.upload_file(output_path, object_name)
+            # Upload cleaned file back to MinIO in processed bucket
+            self.minio_client.upload_file(
+                configs.MINIO_PROCESSED_BUCKET, output_path, object_name
+            )
 
             # Publish processing completion event
             await self.nats_client.publish(
                 configs.NATS_PROCESSING_SUBJECT,
-                json.dumps({"fileId": fileId, "status": "processed"}),
+                json.dumps({"fileId": file_id, "status": "processed"}),
             )
-            
+
+            # Send WebSocket notification
+            await self.send_websocket_notification(file_id, "processed")
+
             # Stream and storage cleanup
             try:
                 # Acknowledge and remove the message from the stream
                 await msg.ack()
-                logger.info(f"Message {msg.sid} acknowledged and removed from the stream.")
-                
+                logger.info(
+                    f"Message {msg.sid} acknowledged and removed from the stream."
+                )
+
                 # Delete the original file from MinIO
                 self.minio_client.delete_file(object_name)
             except Exception as e:
                 logger.error(f"Error deleting file {object_name}: {e}")
-                        
+
         except Exception as e:
             logger.error(f"Error processing {object_name}: {e}")
+
+    async def send_websocket_notification(self, file_id: str, status: str):
+        async with websockets.connect(self.websocket_url) as websocket:           
+            notification = json.dumps({"fileId": file_id, "status": status})
+            await websocket.send(notification)
+            logger.info(f"Sent WebSocket notification: {notification}")
 
     def scan_file(self, file_path):
         scan_file(file_path)

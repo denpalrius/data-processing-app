@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Query, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UsePipes } from '@nestjs/common';
 import { StorageService } from './storage.service';
 import { ApiOperation } from '@nestjs/swagger';
 import { FileTypeValidationPipe } from './validation/file-type-validation-pipe';
@@ -25,5 +25,14 @@ export class StorageController {
   @ApiOperation({ summary: 'Complete the file upload' })
   async completeUpload(@Query('fileId') fileId: string): Promise<FileMetadata> {
     return await this.storageService.completeUpload(fileId);
+  }
+
+  @Get('preview')
+  @ApiOperation({ summary: 'Preview the file content' })
+  async getFilePreview(
+    @Query('fileId') fileId: string,
+    @Query('numRecords') numRecords: number = 10,
+  ): Promise<any> {
+    return await this.storageService.getFilePreview(fileId, numRecords);
   }
 }

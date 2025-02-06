@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { NatsJetStreamServer } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
 import * as cors from 'cors';
@@ -54,6 +57,17 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
 
+  const natsService = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.NATS,
+      options: {
+        servers: ['nats://localhost:4222'],
+      },
+    },
+  );
+
+  await natsService.listen();
   await app.listen(process.env.PORT ?? 3002);
 }
 

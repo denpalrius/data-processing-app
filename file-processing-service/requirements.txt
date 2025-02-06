@@ -6,3 +6,4 @@ python-magic
 openpyxl
 python-dotenv
 watchdog
+websockets
