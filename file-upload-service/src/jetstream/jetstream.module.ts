@@ -1,10 +1,12 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { JetStreamService } from './jetstream.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { JetstreamController } from './jetstream.controller';
 import { FilemetadataModule } from 'src/filemetadata/filemetadata.module';
+import { FrontendGateway } from './frontend.gateway';
 
+@Global()
 @Module({
   imports: [
     FilemetadataModule,
@@ -23,8 +25,8 @@ import { FilemetadataModule } from 'src/filemetadata/filemetadata.module';
       },
     ]),
   ],
-  providers: [JetStreamService],
-  exports: [JetStreamService],
+  providers: [JetStreamService, FrontendGateway],
+  exports: [JetStreamService, FrontendGateway],
   controllers: [JetstreamController],
 })
 export class JetStreamModule {}

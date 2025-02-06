@@ -2,12 +2,16 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { FilemetadataService } from '../filemetadata/filemetadata.service';
 import { FileStatus } from 'src/storage/enums/file-status';
+import { FrontendGateway } from './frontend.gateway';
 
 @Controller('jetstream')
 export class JetstreamController {
   private readonly logger = new Logger(JetstreamController.name);
 
-  constructor(private readonly fileMetadataService: FilemetadataService) {}
+  constructor(
+    private readonly fileMetadataService: FilemetadataService,
+    private readonly frontendGateway: FrontendGateway,
+  ) {}
 
   @MessagePattern('file.processing.*')
   async handleFileProcessingComplete(data: Record<string, unknown>) {
@@ -22,6 +26,11 @@ export class JetstreamController {
       this.logger.log(
         `File status updated to 'processed' for file ID: ${fileId}`,
       );
+
+      this.frontendGateway.handleFileProcessed({
+        fileId: data['id'] as string,
+        status: FileStatus.PROCESSED,
+      });
     } catch (error) {
       this.logger.error(
         `Failed to update file status for file ID: ${fileId}`,
