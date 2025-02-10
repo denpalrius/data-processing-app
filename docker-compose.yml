@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:latest
@@ -37,54 +35,12 @@ services:
       - ./volumes/nats-data:/data
     command: "-js"
 
-  websocket-server:
-    container_name: websocket-server
+  sse-server:
+    container_name: sse-server
     build:
-      context: ./websocket-server
+      context: ./sse
     ports:
-      - "8080:8080"
-    environment:
-      - PYTHONUNBUFFERED=1
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    restart: unless-stopped
-
-  file-upload-service:
-    container_name: file-upload-service
-    build:
-      context: ./file-upload-service
-    ports:
-      - "3002:3002"
-    environment:
-      - LOGGER_LEVEL=log
-    
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USER=admin
-      - DATABASE_PASSWORD=dev123_admin
-      - DATABASE_NAME=file_processor
-
-      - MINIO_ENDPOINT=minio
-      - MINIO_PORT=9000
-      - MINIO_USE_SSL=false
-      - MINIO_ACCESS_KEY=UpcdoQgnk5Z8liDwyaXp
-      - MINIO_SECRET_KEY=N9WYPZlYUMroTdIsnZwlZQVFTI6pQ5pFi55kC9UD
-      - MINIO_STAGING_BUCKET=staging
-      - MINIO_PROCESSED_BUCKET=processed
-
-      - NATS_SERVERS=nats://nats:4222
-      - NATS_STAGED_SUBJECT=file.upload.completed
-      - NATS_PROCESSED_SUBJECT=file.processing.completed
-
-      - WEBSOCKET_URL=ws://websocket-server:8080/ws
-    depends_on:
-      - postgres
-      - minio
-      - nats
-      - websocket-server
+      - "8081:8081"
 
   file-processing-service:
     container_name: file-processing-service
@@ -103,12 +59,44 @@ services:
       - NATS_SERVERS=nats://nats:4222
       - NATS_STAGED_SUBJECT=file.upload.completed
       - NATS_PROCESSED_SUBJECT=file.processing.completed
-
-      - WEBSOCKET_URL=ws://websocket-server:8080/ws
     depends_on:
       - nats
       - minio
-      - websocket-server
+
+  file-upload-service:
+    container_name: file-upload-service
+    build:
+      context: ./file-upload-service
+    ports:
+      - "3002:3002"
+    environment:
+      - LOGGER_LEVEL=log
+
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=admin
+      - DATABASE_PASSWORD=dev123_admin
+      - DATABASE_NAME=file_processor
+
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_USE_SSL=false
+      - MINIO_ACCESS_KEY=UpcdoQgnk5Z8liDwyaXp
+      - MINIO_SECRET_KEY=N9WYPZlYUMroTdIsnZwlZQVFTI6pQ5pFi55kC9UD
+      - MINIO_STAGING_BUCKET=staging
+      - MINIO_PROCESSED_BUCKET=processed
+
+      - NATS_SERVERS=nats://nats:4222
+      - NATS_STAGED_SUBJECT=file.upload.completed
+      - NATS_PROCESSED_SUBJECT=file.processing.completed
+
+      - SSE_BROADCAST_URL=http://sse-server:8081/broadcast
+    depends_on:
+      - postgres
+      - minio
+      - nats
+      - sse-server
+      - file-processing-service
 
   frontend:
     container_name: frontend
@@ -116,11 +104,12 @@ services:
       context: ./frontend
     environment:
       - API_GATEWAY_URL=http://file-upload-service:3002
-      - WEBSOCKET_URL=ws://websocket-server:8080/ws
+      - MINIO_REPLACEMENT_URL=http://localhost:9000/staging
+      - SSE_EVENTS_URL=http://sse-server:8081/events
     depends_on:
       - file-upload-service
       - file-processing-service
-      - websocket-server
+      - sse-server
 
   nginx:
     image: nginx:latest

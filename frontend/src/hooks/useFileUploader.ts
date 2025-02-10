@@ -9,7 +9,11 @@ import {
   completeFileUpload,
   fetchFilePreview,
 } from "../lib/services/upload.service";
-import { MAX_FILE_SIZE, SSE_EVENTS_URL } from "../lib/constants";
+import {
+  MAX_FILE_SIZE,
+  MINIO_REPLACEMENT_URL,
+  SSE_EVENTS_URL,
+} from "../lib/constants";
 import { HttpStatusCode } from "axios";
 import { FilePreviewData } from "@/lib/types/file-preview-data";
 
@@ -117,8 +121,13 @@ export const useFileUploader = () => {
       };
 
       const presignedRes = await getPresignedUrl(presignedDataRequest);
+      
       if (!presignedRes.url) {
         throw new Error("Failed to get presigned URL");
+      }
+      
+      if (MINIO_REPLACEMENT_URL) {
+        presignedRes.url = MINIO_REPLACEMENT_URL;
       }
 
       const formData = new FormData();
