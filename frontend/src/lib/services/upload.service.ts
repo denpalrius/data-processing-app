@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { HttpStatusCode } from "axios";
 import {
   URL_PART_COMPLETE_UPLOAD,
   URL_PART_PRESIGNED_URL,
   URL_PART_UPLOAD,
 } from "../constants";
-import { PresignedUrlRequest } from "../models/presigned-url-request";
-import { PresignedUrlResponse } from "../models/presigned-url-response";
+import { PresignedUrlRequest } from "../types/presigned-url-request";
+import { PresignedUrlResponse } from "../types/presigned-url-response";
 import { ApiService } from "./api.service";
-import axios from "axios";
+import { FilePreviewData } from "../types/file-preview-data";
 
 const allowedFileTypes = [
   "text/csv",
@@ -34,8 +35,9 @@ export async function getPresignedUrl(
       PresignedUrlResponse
     >(URL_PART_PRESIGNED_URL, request);
 
-    return response.data;
+    return response.data as PresignedUrlResponse;
   } catch (error: any) {
+    console.error("Error getting presigned URL:", error);
     throw new Error("Failed to get presigned URL");
   }
 }
@@ -79,7 +81,10 @@ export async function completeFileUpload(fileId: string): Promise<boolean> {
   }
 }
 
-export const fetchFilePreview = async (fileId: string, numRecords: number) => {  
+export async function fetchFilePreview(
+  fileId: string,
+  numRecords: number
+): Promise<FilePreviewData> {
   const response = await apiService.get(
     `${URL_PART_UPLOAD}?fileId=${fileId}&numRecords=${numRecords}`
   );
@@ -87,5 +92,5 @@ export const fetchFilePreview = async (fileId: string, numRecords: number) => {
   if (response.status !== HttpStatusCode.Ok) {
     throw new Error("Failed to fetch file preview");
   }
-  return response.data; 
-};  
+  return response.data as FilePreviewData;
+}

@@ -1,102 +1,34 @@
-import {
-  Injectable,
-  Logger,
-  OnModuleDestroy,
-  OnModuleInit,
-} from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { WebSocketGateway } from '@nestjs/websockets';
-import * as WebSocket from 'ws';
+import axios from 'axios';
 
-@WebSocketGateway()
 @Injectable()
-export class FrontendService implements OnModuleInit, OnModuleDestroy {
+export class FrontendService {
   private readonly logger = new Logger(FrontendService.name);
-  private ws: WebSocket;
+  private readonly sseUrl: string;
 
-  constructor(private readonly configService: ConfigService) {}
-
-  onModuleInit() {
-    const websocketUrl = this.configService.get<string>(
-      'WEBSOCKET_URL',
-      'ws://localhost:8080/ws',
-    );
-
-    if (!websocketUrl) {
-      this.logger.error('WEBSOCKET_URL is not defined');
-      return;
-    }
-
-    this.logger.log(`Connecting to WebSocket server at: ${websocketUrl}...`);
-
-    this.connectToServer(websocketUrl);
+  constructor(private readonly configService: ConfigService) {
+    this.sseUrl =
+      this.configService.get<string>('SSE_BROADCAST_URL') ||
+      'http://localhost:8081/broadcast';
   }
 
-  private connectToServer(websocketUrl: string) {
-    this.ws = new WebSocket(websocketUrl);
+  public async broadcastMessage(message: Record<string, any>): Promise<void> {
+    const data = JSON.stringify(message);
+    this.logger.log('Broadcasting event: ' + data);
 
-    this.ws.on('open', () => {
-      this.logger.log('Connected to WebSocket server');
-    });
-
-    this.ws.on('message', (data: WebSocket.Data) => {
-      try {
-        console.log('Message received:', data);
-
-        const message = JSON.parse(data.toString());
-        this.receiveMessage(message);
-      } catch (error) {
-        this.logger.error(`Error processing message: ${error.message}`);
-      }
-    });
-
-    this.ws.on('close', () => {
-      this.logger.warn('WebSocket connection closed. Attempting reconnect...');
-      setTimeout(() => this.connectToServer(websocketUrl), 5000);
-    });
-
-    this.ws.on('error', (error) => {
-      this.logger.error(`WebSocket error: ${error.message}`);
-    });
-  }
-
-  private receiveMessage(message: any) {
-    // We're just logging the message for now
-    this.logger.log(`Received message: ${JSON.stringify(message)}`);
-  }
-
-  public sendMessage(message: Record<string, any>, retries = 3): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (this.ws?.readyState === WebSocket.OPEN) {
-        try {
-          this.ws.send(JSON.stringify(message));
-          this.logger.log(`Message sent: ${JSON.stringify(message)}`);
-          resolve();
-        } catch (error) {
-          this.logger.error(`Error sending message: ${error.message}`);
-          reject(error);
-        }
-      } else if (retries > 0) {
-        this.logger.warn('WebSocket is not connected. Retrying in 1s...');
-        setTimeout(() => {
-          this.sendMessage(message, retries - 1)
-            .then(resolve)
-            .catch(reject);
-        }, 1000);
-      } else {
-        const error = new Error(
-          'WebSocket is not connected. Unable to send message.',
-        );
-        this.logger.error(error.message);
-        reject(error);
-      }
-    });
-  }
-
-  async onModuleDestroy() {
-    if (this.ws) {
-      this.ws.close();
-      this.logger.log('Disconnected from WebSocket server');
+    try {
+      const response = await axios.post(this.sseUrl, message, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      this.logger.log('Event broadcasted successfully: ' + response.status);
+    } catch (error: any) {
+      this.logger.error('Error broadcasting event:', error.message);
     }
   }
 }

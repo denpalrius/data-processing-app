@@ -1,5 +1,6 @@
-// FilePreview.js
-import React, { useState } from 'react';
+"use client";
+
+import React, { useState } from "react";
 
 interface FilePreviewProps {
   fileContent: Array<{ [key: string]: any }>;
@@ -13,7 +14,8 @@ const FilePreview: React.FC<FilePreviewProps> = ({ fileContent }) => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = fileContent.slice(indexOfFirstItem, indexOfLastItem);
 
-  const paginate = (pageNumber: React.SetStateAction<number>) => setCurrentPage(pageNumber);
+  const paginate = (pageNumber: React.SetStateAction<number>) =>
+    setCurrentPage(pageNumber);
 
   const pageNumbers = [];
   for (let i = 1; i <= Math.ceil(fileContent.length / itemsPerPage); i++) {
@@ -25,11 +27,12 @@ const FilePreview: React.FC<FilePreviewProps> = ({ fileContent }) => {
       <table className="table-auto w-full mb-4">
         <thead className="bg-gray-100">
           <tr>
-            {Object.keys(fileContent[0]).map((key, index) => (
-              <th key={index} className="px-4 py-2">
-                {key}
-              </th>
-            ))}
+            {fileContent.length > 0 &&
+              Object.keys(fileContent[0]).map((key, index) => (
+                <th key={index} className="px-4 py-2">
+                  {key}
+                </th>
+              ))}
           </tr>
         </thead>
         <tbody>
@@ -49,7 +52,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ fileContent }) => {
           <button
             key={number}
             className={`px-4 py-1 rounded-md ${
-              currentPage === number ? 'bg-blue-500 text-white' : ''
+              currentPage === number ? "bg-blue-500 text-white" : ""
             }`}
             onClick={() => paginate(number)}
           >

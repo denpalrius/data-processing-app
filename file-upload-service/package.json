@@ -33,6 +33,7 @@
     "@nestjs/typeorm": "^11.0.0",
     "@nestjs/websockets": "^11.0.7",
     "@stomp/stompjs": "^7.0.0",
+    "axios": "^1.7.9",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cors": "^2.8.5",

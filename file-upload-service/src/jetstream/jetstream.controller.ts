@@ -27,10 +27,13 @@ export class JetstreamController {
         `File status updated to 'processed' for file ID: ${fileId}`,
       );
 
-      await this.frontendGateway.sendMessage({
+      const eventData = {
+        type: 'fileUpload',
         fileId: fileId,
         status: FileStatus.PROCESSED,
-      });
+      };
+
+      await this.frontendGateway.broadcastMessage(eventData);
     } catch (error) {
       this.logger.error(
         `Failed to update file status for file ID: ${fileId}`,

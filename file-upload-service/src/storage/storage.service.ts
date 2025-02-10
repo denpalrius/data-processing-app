@@ -124,13 +124,9 @@ export class StorageService {
       throw new NotFoundException('File not found');
     }
 
-    // if (metadata.status !== FileStatus.PROCESSED) {
-    //   throw new UnprocessableEntityException('File is not procesed yet');
-    // }
-    // Add a sleep function to wait for the file to be processed
-
-    // TODO: For testing witout processing, remove this later
-    // await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (metadata.status !== FileStatus.PROCESSED) {
+      throw new UnprocessableEntityException('File is not procesed yet');
+    }
 
     const localPath = path.join('/tmp', metadata.objectName);
     await this.minioService.downloadProcessedFile(

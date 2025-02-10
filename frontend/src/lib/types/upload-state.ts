@@ -1,9 +1,5 @@
-export type UploadStatus =
-  | "idle"
-  | "ready"
-  | "uploading"
-  | "complete"
-  | "error";
+import { UploadStatus } from "./upload-status";
+import { FilePreviewData } from "./file-preview-data";
 
 export interface UploadState {
   file: File | null;
@@ -11,12 +7,13 @@ export interface UploadState {
   status: UploadStatus;
   error: string | null;
   retryCount: number;
-  ws: WebSocket | null;
+  previewData: FilePreviewData;
+
   setFile: (file: File | null) => void;
   setProgress: (progress: number) => void;
   setStatus: (status: UploadStatus) => void;
   setError: (error: string | null) => void;
   setRetryCount: (count: number) => void;
-  setWs: (ws: WebSocket | null) => void;
+  setPreviewData: (previewData: FilePreviewData) => void;
   reset: () => void;
 }

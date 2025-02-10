@@ -1,8 +1,8 @@
 "use client";
 
-import React from 'react';
-import { Upload, RefreshCw, CheckCircle } from 'lucide-react';
-import { UploadStatus } from '../types/upload';
+import React from "react";
+import { Upload, RefreshCw, CheckCircle } from "lucide-react";
+import { UploadStatus } from "../lib/types/upload-status";
 
 interface UploadButtonProps {
   status: UploadStatus;
@@ -13,24 +13,24 @@ interface UploadButtonProps {
 export const UploadButton: React.FC<UploadButtonProps> = ({
   status,
   onUpload,
-  disabled
+  disabled,
 }) => (
   <button
     onClick={onUpload}
     disabled={disabled}
-    aria-busy={status === 'uploading'}
+    aria-busy={status === "uploading"}
   >
-    {status === 'uploading' ? (
+    {status === "uploading" ? (
       <RefreshCw />
-    ) : status === 'complete' ? (
+    ) : status === "complete" ? (
       <CheckCircle />
     ) : (
       <Upload />
     )}
-    {status === 'uploading'
-      ? 'Uploading...'
-      : status === 'complete'
-      ? 'Uploaded'
-      : 'Upload'}
+    {status === "uploading"
+      ? "Uploading..."
+      : status === "complete"
+      ? "Uploaded"
+      : "Upload"}
   </button>
 );

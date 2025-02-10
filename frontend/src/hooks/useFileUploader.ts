@@ -1,20 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import useUploadStore from "../../stores/uploadStore";
+import useUploadStore from "../stores/uploadStore";
 import {
   getPresignedUrl,
   uploadFile,
   completeFileUpload,
   fetchFilePreview,
-} from "../../lib/services/upload.service";
-import {
-  MAX_RETRIES,
-  RETRY_DELAY,
-  MAX_FILE_SIZE,
-  WEBSOCKET_URL,
-} from "../../lib/constants";
+} from "../lib/services/upload.service";
+import { MAX_FILE_SIZE, SSE_EVENTS_URL } from "../lib/constants";
 import { HttpStatusCode } from "axios";
+import { FilePreviewData } from "@/lib/types/file-preview-data";
 
 export const useFileUploader = () => {
   const {
@@ -22,55 +19,65 @@ export const useFileUploader = () => {
     progress,
     status,
     error,
-    retryCount,
-    ws,
     setFile,
     setProgress,
     setStatus,
     setError,
-    setRetryCount,
-    setWs,
   } = useUploadStore();
 
-  const [fileContent, setFileContent] = useState<string>("");
+  const [fileContent, setFileContent] = useState<FilePreviewData>([]);
+  const [, setEventSource] = useState<EventSource | null>(null);
 
   useEffect(() => {
-    const socket = new WebSocket(WEBSOCKET_URL);
+    // Create new EventSource connection
+    const sse = new EventSource(SSE_EVENTS_URL);
 
-    socket.onopen = () => {
-      console.log("WebSocket connection opened");
+    // Connection opened
+    sse.onopen = () => {
+      console.log("SSE connection opened");
     };
 
-    socket.onmessage = (event) => {
-      console.log("WebSocket event received:", event);
-      const data = JSON.parse(event.data);
+    // Listen for messages
+    sse.onmessage = async (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "fileUpload" && data.status === "processed") {
+          const numRecords = 50; // Fetch just 50 records for preview
+          const previewData = await fetchFilePreview(data.fileId, numRecords);
 
-      if (data.type === "UPLOAD_STATUS") {
-        console.log("Upload status event received:", data.status);
-        setStatus(data.status);
-      } else if (data.type === "FILE_PREVIEW") {
-        console.log("File preview event received:", data.content);
-        setFileContent(data.content);
-      } else {
-        console.log("Unknown event type received:", data.type);
+          setFileContent(previewData);
+        }
+      } catch (error) {
+        console.error("Error processing SSE message:", error);
       }
     };
 
-    socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
+    sse.onerror = (error) => {
+      console.error("SSE error:", error);
+
+      if (sse.readyState === EventSource.CLOSED) {
+        console.log("SSE connection closed. Attempting to reconnect...");
+
+        setTimeout(() => {
+          const newSse = new EventSource(SSE_EVENTS_URL);
+          newSse.onopen = sse.onopen;
+          newSse.onmessage = sse.onmessage;
+          newSse.onerror = sse.onerror;
+          setEventSource(newSse);
+        }, 5000); // Reconnect after 5 seconds
+      }
     };
 
-    socket.onclose = (event) => {
-      console.log("WebSocket connection closed:", event);
-    };
+    setEventSource(sse);
 
-    setWs(socket);
-
+    // Cleanup on unmount
     return () => {
-      socket.close();
-      setWs(null);
+      if (sse) {
+        sse.close();
+        setEventSource(null);
+      }
     };
-  }, [setStatus, setWs]);
+  }, [setStatus]);
 
   const handleFileSelect = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,10 +90,10 @@ export const useFileUploader = () => {
         setFile(selectedFile);
         setStatus("ready");
         setError(null);
-        setFileContent(""); // Reset fileContent when a new file is selected
+        setFileContent([]);
       }
     },
-    [setFile, setStatus, setError, setFileContent]
+    [setFile, setStatus, setError]
   );
 
   const handleUpload = useCallback(async () => {
@@ -100,7 +107,7 @@ export const useFileUploader = () => {
       const fileMagicNumber = await file
         .slice(0, 4)
         .arrayBuffer()
-        .then((buffer) => new Uint8Array(buffer)[0]);
+        .then((buffer: any) => new Uint8Array(buffer)[0]);
 
       const presignedDataRequest = {
         filename: file.name,
@@ -135,20 +142,11 @@ export const useFileUploader = () => {
 
       setProgress(100);
       setStatus("complete");
-
-      // Fetch file preview data
-      const numRecords = 50; // Fetch just 50 records for preview
-      const previewData = await fetchFilePreview(
-        presignedRes.fileId,
-        numRecords
-      );
-
-      setFileContent(previewData as string);
     } catch (error) {
       setError((error as Error).message);
       setStatus("error");
     }
-  }, [file, ws, setStatus, setProgress, setError]);
+  }, [file, setStatus, setProgress, setError]);
 
   return {
     file,

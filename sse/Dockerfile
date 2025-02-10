@@ -10,8 +10,6 @@ RUN pnpm install
 
 COPY . .
 
-RUN pnpm run build
+EXPOSE 8081
 
-EXPOSE 3002
-
-CMD ["pnpm", "start:prod"]
+CMD ["node", "server.js"]
