@@ -18,7 +18,7 @@ import minioConfig from './minio/minio.config';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DATABASE_URL,
+      host: process.env.DATABASE_HOST,
       port: Number(process.env.DATABASE_PORT),
       username: process.env.DATABASE_USER,
       password: process.env.DATABASE_PASSWORD,

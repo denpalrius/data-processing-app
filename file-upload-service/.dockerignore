@@ -3,7 +3,9 @@ dist
 *.log
 *.md
 .git
+
 .env
+
 Dockerfile
 .dockerignore
 .next

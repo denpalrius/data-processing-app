@@ -12,13 +12,25 @@ import * as cors from 'cors';
 import rateLimit from 'express-rate-limit';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logLevels = (process.env.LOGGER_LEVEL || 'log')
+    .split(',')
+    .map((level) => level.trim()) as (
+    | 'log'
+    | 'error'
+    | 'warn'
+    | 'debug'
+    | 'verbose'
+  )[];
+
+  const app = await NestFactory.create(AppModule, {
+    logger: logLevels,
+  });
 
   app.use(helmet());
 
   app.use(
     cors({
-      origin: 'http://localhost:3000',
+      origin: '*', // Allow all origins
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       credentials: true,
     }),
@@ -61,7 +73,7 @@ async function bootstrap() {
     {
       transport: Transport.NATS,
       options: {
-        servers: ['nats://localhost:4222'],
+        servers: [process.env.NATS_SERVERS ?? 'nats://localhost:4222'],
       },
     },
   );

@@ -1,7 +1,6 @@
 import logging
 import json
 import asyncio
-import websockets
 from config.nats_client import NatsClient
 from config.minio_client import MinioClient
 from config import configs
@@ -56,9 +55,6 @@ class FileProcessor:
                 json.dumps({"fileId": file_id, "status": "processed"}),
             )
 
-            # Send WebSocket notification
-            await self.send_websocket_notification(file_id, "processed")
-
             # Stream and storage cleanup
             try:
                 # Acknowledge and remove the message from the stream
@@ -74,12 +70,6 @@ class FileProcessor:
 
         except Exception as e:
             logger.error(f"Error processing {object_name}: {e}")
-
-    async def send_websocket_notification(self, file_id: str, status: str):
-        async with websockets.connect(self.websocket_url) as websocket:           
-            notification = json.dumps({"fileId": file_id, "status": status})
-            await websocket.send(notification)
-            logger.info(f"Sent WebSocket notification: {notification}")
 
     def scan_file(self, file_path):
         scan_file(file_path)

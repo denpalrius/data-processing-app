@@ -43,22 +43,6 @@ async def websocket_endpoint(websocket: WebSocket):
         connected_clients.remove(websocket)
 
 
-async def send_periodic_updates():
-    while True:
-        if connected_clients:
-            for client in connected_clients:
-                try:
-                    await client.send_text(
-                        '{"type": "UPLOAD_STATUS", "status": "processing"}'
-                    )
-                except Exception as e:
-                    logger.error(f"Error sending message to client: {e}")
-        await asyncio.sleep(5)
-
-
 if __name__ == "__main__":
     import uvicorn
-
-    loop = asyncio.get_event_loop()
-    loop.create_task(send_periodic_updates())
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="localhost", port=8080)

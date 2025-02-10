@@ -17,7 +17,6 @@ import * as csv from 'csv-parser';
 import * as xlsx from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';
-import { parse } from 'fast-csv';
 
 @Injectable()
 export class StorageService {
@@ -131,7 +130,7 @@ export class StorageService {
     // Add a sleep function to wait for the file to be processed
 
     // TODO: For testing witout processing, remove this later
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const localPath = path.join('/tmp', metadata.objectName);
     await this.minioService.downloadProcessedFile(

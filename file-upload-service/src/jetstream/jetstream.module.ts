@@ -17,7 +17,7 @@ import { FrontendService } from './frontend.service';
         options: {
           servers: [
             new ConfigService().get<string>(
-              'NATS_URL',
+              'NATS_SERVERS',
               'nats://localhost:4222',
             ),
           ],

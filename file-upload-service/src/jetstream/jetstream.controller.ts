@@ -27,7 +27,7 @@ export class JetstreamController {
         `File status updated to 'processed' for file ID: ${fileId}`,
       );
 
-      this.frontendGateway.sendMessage({
+      await this.frontendGateway.sendMessage({
         fileId: fileId,
         status: FileStatus.PROCESSED,
       });

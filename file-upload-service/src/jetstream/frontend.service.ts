@@ -1,13 +1,22 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Client, StompConfig } from '@stomp/stompjs';
+import { WebSocketGateway } from '@nestjs/websockets';
+import * as WebSocket from 'ws';
 
+@WebSocketGateway()
 @Injectable()
-export class FrontendService implements OnModuleDestroy {
+export class FrontendService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(FrontendService.name);
-  private client: Client;
+  private ws: WebSocket;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(private readonly configService: ConfigService) {}
+
+  onModuleInit() {
     const websocketUrl = this.configService.get<string>(
       'WEBSOCKET_URL',
       'ws://localhost:8080/ws',
@@ -18,53 +27,75 @@ export class FrontendService implements OnModuleDestroy {
       return;
     }
 
-    this.logger.log(`Connecting to WebSocket server at: ${websocketUrl}`);
+    this.logger.log(`Connecting to WebSocket server at: ${websocketUrl}...`);
 
-    const stompConfig: StompConfig = {
-      brokerURL: websocketUrl,
-      connectHeaders: {},
-      debug: (str) => {
-        this.logger.log(str);
-      },
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-    };
-
-    this.client = new Client(stompConfig);
-
-    this.client.onConnect = (frame) => {
-      this.logger.log('Connected to WebSocket server');
-      this.sendMessage({ type: 'fileProcessed', data: 'test' });
-    };
-
-    this.client.onStompError = (frame) => {
-      this.logger.error(`Broker reported error: ${frame.headers['message']}`);
-      this.logger.error(`Additional details: ${frame.body}`);
-    };
-
-    this.client.onWebSocketClose = (evt) => {
-      this.logger.log('Disconnected from WebSocket server');
-    };
-
-    this.client.activate();
+    this.connectToServer(websocketUrl);
   }
 
-  sendMessage(message: Record<string, any>) {
-    if (this.client && this.client.connected) {
-      this.client.publish({
-        destination: '/topic/messages',
-        body: JSON.stringify(message),
-      });
-      this.logger.log(`Message sent: ${JSON.stringify(message)}`);
-    } else {
-      this.logger.error('WebSocket is not connected. Unable to send message.');
-    }
+  private connectToServer(websocketUrl: string) {
+    this.ws = new WebSocket(websocketUrl);
+
+    this.ws.on('open', () => {
+      this.logger.log('Connected to WebSocket server');
+    });
+
+    this.ws.on('message', (data: WebSocket.Data) => {
+      try {
+        console.log('Message received:', data);
+
+        const message = JSON.parse(data.toString());
+        this.receiveMessage(message);
+      } catch (error) {
+        this.logger.error(`Error processing message: ${error.message}`);
+      }
+    });
+
+    this.ws.on('close', () => {
+      this.logger.warn('WebSocket connection closed. Attempting reconnect...');
+      setTimeout(() => this.connectToServer(websocketUrl), 5000);
+    });
+
+    this.ws.on('error', (error) => {
+      this.logger.error(`WebSocket error: ${error.message}`);
+    });
+  }
+
+  private receiveMessage(message: any) {
+    // We're just logging the message for now
+    this.logger.log(`Received message: ${JSON.stringify(message)}`);
+  }
+
+  public sendMessage(message: Record<string, any>, retries = 3): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this.ws?.readyState === WebSocket.OPEN) {
+        try {
+          this.ws.send(JSON.stringify(message));
+          this.logger.log(`Message sent: ${JSON.stringify(message)}`);
+          resolve();
+        } catch (error) {
+          this.logger.error(`Error sending message: ${error.message}`);
+          reject(error);
+        }
+      } else if (retries > 0) {
+        this.logger.warn('WebSocket is not connected. Retrying in 1s...');
+        setTimeout(() => {
+          this.sendMessage(message, retries - 1)
+            .then(resolve)
+            .catch(reject);
+        }, 1000);
+      } else {
+        const error = new Error(
+          'WebSocket is not connected. Unable to send message.',
+        );
+        this.logger.error(error.message);
+        reject(error);
+      }
+    });
   }
 
   async onModuleDestroy() {
-    if (this.client) {
-      await this.client.deactivate();
+    if (this.ws) {
+      this.ws.close();
       this.logger.log('Disconnected from WebSocket server');
     }
   }
