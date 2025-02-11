@@ -134,15 +134,15 @@ services:
   frontend:
     container_name: frontend
     build:
-      context: ./frontend
-    ports:
-      - "3000:3000"
+      context: ./frontend    
+    # ports:
+    #   - "3000:3000"
     environment:
-      API_GATEWAY_URL: ${API_GATEWAY_URL}
-      MINIO_REPLACEMENT_URL: ${MINIO_REPLACEMENT_URL}
+      API_GATEWAY_URL: http://file-upload-service:3001
+      MINIO_REPLACEMENT_URL: http://localhost:9000
       SSE_EVENTS_URL: ${SSE_EVENTS_URL}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: ["CMD", "curl", "-f", "http://frontend:3000"]
       interval: 30s
       timeout: 10s
       retries: 3
