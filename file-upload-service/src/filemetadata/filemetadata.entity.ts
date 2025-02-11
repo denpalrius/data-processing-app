@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity()
+@Entity('file_metadata')
 export class FileMetadata {
   @PrimaryGeneratedColumn('uuid')
   id: string;
