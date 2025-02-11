@@ -26,7 +26,7 @@ This guide provides instructions on how to run and test the application manually
 2. Run the following command to start the services:
 
 ```bash
-docker-compose up -d
+docker-compose up
 ```
 
 This command will start all the services as defined in the `docker-compose.yml` file.
@@ -39,13 +39,13 @@ To deploy the application to a Kubernetes cluster, follow these steps:
 2. Apply the Kubernetes manifest:
 
 ```bash
-kubectl apply -f infrastructure/k8s-deployment.yaml
+kubectl apply -f ./infrastructure/k8s/deployment.yaml
 ```
 
 Alternatively, you can use the provided `deploy.sh` script to apply the manifest:
 
 ```bash
-./infrastructure/deploy.sh
+./infrastructure/k8s/deploy.sh
 ```
 
 ## Testing the Application
