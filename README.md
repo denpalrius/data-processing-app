@@ -20,6 +20,45 @@ This guide provides instructions on how to run and test the application manually
 - Node.js 22
 - Python 3.11.11
 
+## Configuring Environment Variables
+
+Create a `.env` file in the root directory of the project (same directory as the `docker-compose.yml` file) and add the following configuration:
+
+```dotenv
+# PostgreSQL
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=dev123_admin
+
+DATABASE_HOST=postgres
+DATABASE_PORT=5432
+DATABASE_USER=admin
+DATABASE_PASSWORD=dev123_admin
+DATABASE_NAME=file_processor
+
+# MinIO
+MINIO_ENDPOINT=minio
+MINIO_REPLACEMENT_URL=http://localhost:9000
+MINIO_PORT=9000
+MINIO_USE_SSL=false
+MINIO_ROOT_USER=admin
+MINIO_ROOT_PASSWORD=dev123_admin
+MINIO_ACCESS_KEY=UpcdoQgnk5Z8liDwyaXp
+MINIO_SECRET_KEY=N9WYPZlYUMroTdIsnZwlZQVFTI6pQ5pFi55kC9UD
+MINIO_STAGING_BUCKET=staging
+MINIO_PROCESSED_BUCKET=processed
+
+# NATS
+NATS_SERVERS=nats://nats:4222
+NATS_STAGED_SUBJECT=file.upload.completed
+NATS_PROCESSED_SUBJECT=file.processing.completed
+
+# SSE
+SSE_BROADCAST_URL=http://sse-server:8081/broadcast
+
+# File Upload Service
+LOGGER_LEVEL=log
+```
+
 ## Running the Application with Docker Compose
 
 1. Navigate to the root directory of the project.
@@ -52,11 +91,29 @@ Alternatively, you can use the provided `deploy.sh` script to apply the manifest
 
 Open your browser and navigate to `http://localhost:81`. You should see the frontend application and be able to interact with it.
 
-Diffeent layers of restrictions have been placed for file/mime types from the frontend, the upload service and the processing service.
+Different layers of restrictions have been placed for file/mime types from the frontend, the upload service, and the processing service.
 For preview, use either a `CSV` or `Excel` file.
 
-> For quick prototyping, most of the secrets are in plain text and included with the config files. An idel situation would be to use a secret store to store and retrieve them.
+### Testing with a Tabular CSV File
 
+To test the application with a tabular CSV file, follow these steps:
+
+1. Prepare a tabular CSV file. See sample structure below:
+
+```csv
+id,name,age,email
+1,John Doe,30,john.doe@example.com
+2,Jane Smith,25,jane.smith@example.com
+3,Bob Johnson,40,bob.johnson@example.com
+```
+
+You can find sample CSV files from the Florida State University [CSV archive](https://people.sc.fsu.edu/~jburkardt/data/csv/csv.html).
+
+2. Open the frontend application in your browser at `http://localhost:81`.
+3. Use the file upload feature to upload the prepared CSV file.
+4. Monitor the logs of the `file-upload-service` and `file-processing-service` to ensure the file is processed correctly.
+
+> For quick prototyping, most of the secrets are in plain text and included with the config files. An ideal situation would be to use a secret store to store and retrieve them.
 
 ## Cleaning Up
 
