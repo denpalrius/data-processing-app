@@ -37,8 +37,8 @@ DATABASE_NAME=file_processor
 
 # MinIO
 MINIO_ENDPOINT=minio
-MINIO_REPLACEMENT_URL=http://localhost:9000
-MINIO_PORT=9000
+MINIO_REPLACEMENT_URL=http://localhost:9002 # The one exposed by the host
+MINIO_PORT=9000 # The one exposed by the container
 MINIO_USE_SSL=false
 MINIO_ROOT_USER=admin
 MINIO_ROOT_PASSWORD=dev123_admin
@@ -53,6 +53,7 @@ NATS_STAGED_SUBJECT=file.upload.completed
 NATS_PROCESSED_SUBJECT=file.processing.completed
 
 # SSE
+SSE_EVENTS_URL=http://sse-server:8081/events
 SSE_BROADCAST_URL=http://sse-server:8081/broadcast
 
 # File Upload Service

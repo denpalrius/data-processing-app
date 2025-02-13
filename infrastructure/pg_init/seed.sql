@@ -1,4 +1,4 @@
-\echo '\n--- Database Initialization ---';
+\echo '\n--- 📀 Initializing PostgreSQL Database ---';
 
 -- Attempt to create the database if it doesn't exist
 DO $$ 
@@ -26,17 +26,6 @@ CREATE TABLE IF NOT EXISTS file_metadata (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Check if the table is empty before seeding
--- DO $$
--- BEGIN
---     IF NOT EXISTS (SELECT 1 FROM file_metadata LIMIT 1) THEN
---         INSERT INTO file_metadata (filename, size, content_type, bucket_name, object_name, bucket_url, status) VALUES
---             ('file1.txt', 1024, 'text/plain', 'bucket1', 'object1', 'http://localhost:9000/bucket1/object1', 'UPLOADED'),
---             ('file2.pdf', 5120, 'application/pdf', 'bucket2', 'object2', 'http://localhost:9000/bucket2/object2', 'UPLOADED');
---     END IF;
--- END
--- $$;
-
 -- Verify the initialization
 \echo '\n--- Database Status ---';
 \echo '\nTable Structure:';
@@ -47,3 +36,6 @@ SELECT * FROM file_metadata ORDER BY id;
 
 \echo '\nRecord Count:';
 SELECT COUNT(*) as total_records FROM file_metadata;
+
+
+\echo '\n--- ✅ Database Initialization Complete ---';

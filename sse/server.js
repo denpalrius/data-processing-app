@@ -52,17 +52,6 @@ function broadcastToAll(data) {
   clients.forEach((client) => client.write(message));
 }
 
-// For testing: Start periodic updates
-// let counter = 0;
-// setInterval(() => {
-//   const data = {
-//     type: "update",
-//     count: counter++,
-//     timestamp: new Date().toISOString(),
-//   };
-//   broadcastToAll(data);
-// }, 10000);
-
 app.listen(PORT, () => {
-  console.log(`SSE Server running at http://localhost:${PORT}`);
+  console.log(`👂 SSE Server running at http://localhost:${PORT}`);
 });

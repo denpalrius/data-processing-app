@@ -24,7 +24,7 @@ services:
     image: minio/minio
     container_name: minio
     ports:
-      - "9000:9000"
+      - "9002:9000"
       - "9001:9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
@@ -33,7 +33,7 @@ services:
     entrypoint:
       ["sh", "-c", "chmod +x /usr/bin/minio_init.sh && /usr/bin/minio_init.sh"]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "curl", "-f", "http://minio:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -139,7 +139,7 @@ services:
     #   - "3000:3000"
     environment:
       API_GATEWAY_URL: http://file-upload-service:3001
-      MINIO_REPLACEMENT_URL: http://localhost:9000
+      MINIO_REPLACEMENT_URL: ${MINIO_REPLACEMENT_URL}
       SSE_EVENTS_URL: ${SSE_EVENTS_URL}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://frontend:3000"]

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "🚀 Initializing MinIO server..."
+echo "--- 🪣 Initializing MinIO server ---"
 
 mkdir -p /data
 
@@ -13,12 +13,14 @@ until mc ready local; do
 done
 
 # Configure mc
-mc config host add myminio http://localhost:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}
+mc config host add myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}
 
 # Create service account (access keys)
 mc admin user svcacct add myminio ${MINIO_ROOT_USER} \
   --access-key  ${MINIO_ACCESS_KEY} \
   --secret-key ${MINIO_SECRET_KEY}
+
+echo "--- ✅ MinIO server initialized successfully ---"
 
 # Keep container running
 wait
