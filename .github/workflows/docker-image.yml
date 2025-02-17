@@ -2,13 +2,12 @@ name: Docker Compose CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     services:
@@ -17,18 +16,30 @@ jobs:
         options: --privileged
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Docker Compose
-      run: |
-        sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        sudo chmod +x /usr/local/bin/docker-compose
+      - name: Set up Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
 
-    - name: Build and run Docker Compose services
-      run: docker-compose up -d --build
+      - name: Build and run Docker Compose services
+        run: docker-compose up -d --build
 
-    # - name: Run tests
-    #   run: docker-compose exec -T <service-name> pnpm test
+      - name: Wait for services to be healthy
+        run: sleep 30
 
-    - name: Stop Docker Compose services
-      run: docker-compose down
+      - name: Test Postgres health
+        run: docker-compose exec -T postgres pg_isready -U admin -d file_processor
+
+      - name: Test MinIO health
+        run: docker-compose exec -T minio curl -f http://minio:9000/minio/health/live
+
+      - name: Test NATS health
+        run: docker-compose exec -T nats nats-server --help
+
+      - name: Test Frontend health
+        run: docker-compose exec -T frontend curl -f http://frontend:3000
+
+      - name: Stop Docker Compose services
+        run: docker-compose down
