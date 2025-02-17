@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 
+# Sensitive files 
+**.pem
+
 # Docker volumes
 volumes**/
 
@@ -42,3 +45,10 @@ Thumbs.db
 # Production
 .env.production
 .env.local
+.env.development
+
+# Terraform
+**/.terraform/**
+.terraform.**
+*.tfstate
+*.tfstate.*
